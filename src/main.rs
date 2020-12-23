@@ -1,3 +1,6 @@
+mod actions;
+use actions::Action;
+
 use serenity::async_trait;
 use serenity::client::{Client, Context, EventHandler};
 use serenity::framework::standard::{
@@ -7,12 +10,11 @@ use serenity::framework::standard::{
 };
 use serenity::model::{channel::Message, id::UserId};
 
-use serenity::model::user::User;
 use serenity::utils::Color;
 use std::{collections::HashSet, fs};
 
 #[group]
-#[commands(cuddle)]
+#[commands(cuddle, hug, pat, kiss)]
 struct Cute;
 
 struct Handler;
@@ -46,19 +48,63 @@ async fn main() {
 #[bucket = "cute"]
 #[description = "Cuddle someone by mentioning them!"]
 async fn cuddle(ctx: &Context, msg: &Message) -> CommandResult {
-    let messages: Vec<String> = if msg.content.contains("everyone") {
-        vec![String::from("Cuddling everyone!")]
-    } else if msg.mentions.is_empty() {
-        vec![String::from(
-            "Nobody to cuddle ;-;\nmention someone to cuddle them!",
-        )]
-    } else {
-        msg.mentions
-            .iter()
-            .map(|mention: &User| format!("<@{}> is cuddling <@{}>", msg.author.id, mention.id))
-            .collect()
+    let action = Action {
+        everyone_text: String::from("Cuddling everyone"),
+        nobody_text: String::from("Nobody to cuddle ;-;\nmention someone to cuddle them!"),
+        normal_text: String::from("<@_s> is cuddling <@_r>"),
     };
 
+    send_messages(&ctx, &msg, &action.build_messages(msg)).await;
+
+    Ok(())
+}
+
+#[command]
+#[bucket = "cute"]
+#[description = "Hug someone by mentioning them!"]
+async fn hug(ctx: &Context, msg: &Message) -> CommandResult {
+    let action = Action {
+        everyone_text: String::from("Group hug!!!"),
+        nobody_text: String::from("Nobody to hug ;-;\nmention someone to hug them!"),
+        normal_text: String::from("<@_s> gave <@_r> a hug"),
+    };
+
+    send_messages(&ctx, &msg, &action.build_messages(msg)).await;
+
+    Ok(())
+}
+
+#[command]
+#[bucket = "cute"]
+#[description = "Pat someone by mentioning them!"]
+async fn pat(ctx: &Context, msg: &Message) -> CommandResult {
+    let action = Action {
+        everyone_text: String::from("Patting everyone!!!"),
+        nobody_text: String::from("Nobody to pat ;-;\nmention someone to pat them!"),
+        normal_text: String::from("<@_s> is patting <@_r>"),
+    };
+
+    send_messages(&ctx, &msg, &action.build_messages(msg)).await;
+
+    Ok(())
+}
+
+#[command]
+#[bucket = "cute"]
+#[description = "Kiss someone by mentioning them!"]
+async fn kiss(ctx: &Context, msg: &Message) -> CommandResult {
+    let action = Action {
+        everyone_text: String::from("Kissing everyone :flushed: :flushed: :flushed:"),
+        nobody_text: String::from("Nobody to kiss ;-;\nmention someone to kiss them!"),
+        normal_text: String::from("<@_s> gave <@_r> a kiss :flushed:"),
+    };
+
+    send_messages(&ctx, &msg, &action.build_messages(msg)).await;
+
+    Ok(())
+}
+
+async fn send_messages(ctx: &Context, msg: &Message, messages: &Vec<String>) {
     for message in messages {
         msg.channel_id
             .send_message(ctx, |m| {
@@ -71,10 +117,9 @@ async fn cuddle(ctx: &Context, msg: &Message) -> CommandResult {
 
                 m
             })
-            .await?;
+            .await
+            .unwrap();
     }
-
-    Ok(())
 }
 
 #[help]

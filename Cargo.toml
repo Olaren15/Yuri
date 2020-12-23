@@ -1,5 +1,5 @@
 [package]
-name = "discord-bot"
+name = "yuri"
 version = "0.1.0"
 authors = ["Catherine Gilbert <catherine.gilbert15@gmail.com>"]
 edition = "2018"

@@ -1,4 +1,5 @@
 mod actions;
+
 use actions::Action;
 
 use serenity::async_trait;
@@ -10,6 +11,7 @@ use serenity::framework::standard::{
 };
 use serenity::model::{channel::Message, id::UserId};
 
+use serenity::model::id::ChannelId;
 use serenity::utils::Color;
 use std::{collections::HashSet, fs};
 
@@ -54,7 +56,7 @@ async fn cuddle(ctx: &Context, msg: &Message) -> CommandResult {
         normal_text: String::from("<@_s> is cuddling <@_r>"),
     };
 
-    send_messages(&ctx, &msg, &action.build_messages(msg)).await;
+    send_messages(&ctx, msg.channel_id, &action.build_messages(msg)).await;
 
     Ok(())
 }
@@ -69,7 +71,7 @@ async fn hug(ctx: &Context, msg: &Message) -> CommandResult {
         normal_text: String::from("<@_s> gave <@_r> a hug"),
     };
 
-    send_messages(&ctx, &msg, &action.build_messages(msg)).await;
+    send_messages(&ctx, msg.channel_id, &action.build_messages(msg)).await;
 
     Ok(())
 }
@@ -84,7 +86,7 @@ async fn pat(ctx: &Context, msg: &Message) -> CommandResult {
         normal_text: String::from("<@_s> is patting <@_r>"),
     };
 
-    send_messages(&ctx, &msg, &action.build_messages(msg)).await;
+    send_messages(&ctx, msg.channel_id, &action.build_messages(msg)).await;
 
     Ok(())
 }
@@ -99,14 +101,14 @@ async fn kiss(ctx: &Context, msg: &Message) -> CommandResult {
         normal_text: String::from("<@_s> gave <@_r> a kiss :flushed:"),
     };
 
-    send_messages(&ctx, &msg, &action.build_messages(msg)).await;
+    send_messages(&ctx, msg.channel_id, &action.build_messages(msg)).await;
 
     Ok(())
 }
 
-async fn send_messages(ctx: &Context, msg: &Message, messages: &Vec<String>) {
+async fn send_messages(ctx: &Context, channel_id: ChannelId, messages: &Vec<String>) {
     for message in messages {
-        msg.channel_id
+        channel_id
             .send_message(ctx, |m| {
                 m.embed(|e| {
                     e.description(message.as_str());

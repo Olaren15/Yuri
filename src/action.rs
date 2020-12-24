@@ -1,17 +1,31 @@
 use serenity::model::{channel::Message, user::User};
 
+use crate::image_provider::ImageProvider;
+use crate::reply::Reply;
+
 pub struct Action {
     pub everyone_text: String,
     pub nobody_text: String,
     pub normal_text: String,
+    pub image_folder: Option<String>,
 }
 
 impl Action {
-    pub fn build_messages(&self, msg: &Message) -> Vec<String> {
+    pub fn build_message(&self, msg: &Message) -> Vec<Reply> {
         if msg.content.contains("everyone") {
-            vec![self.everyone_text.clone()]
+            vec![Reply {
+                message: self.everyone_text.clone(),
+                attachment: if let Some(path) = self.image_folder.as_ref() {
+                    ImageProvider::get_random(path)
+                } else {
+                    None
+                },
+            }]
         } else if msg.mentions.is_empty() {
-            vec![self.nobody_text.clone()]
+            vec![Reply {
+                message: self.nobody_text.clone(),
+                attachment: None,
+            }]
         } else {
             msg.mentions
                 .iter()
@@ -32,7 +46,14 @@ impl Action {
                         )
                     };
 
-                    formatted_message
+                    Reply {
+                        message: formatted_message,
+                        attachment: if let Some(path) = self.image_folder.as_ref() {
+                            ImageProvider::get_random(path)
+                        } else {
+                            None
+                        },
+                    }
                 })
                 .collect()
         }

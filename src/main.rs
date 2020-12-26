@@ -1,6 +1,6 @@
 mod action;
-mod cute;
-mod image_provider;
+mod action_commands;
+mod image_repository;
 mod reply;
 
 use serenity::client::{Client, Context};
@@ -15,11 +15,18 @@ use std::{collections::HashSet, fs};
 async fn main() {
     let framework = StandardFramework::new()
         .configure(|c| c.prefix("!"))
-        .group(&crate::cute::CUTESTUFF_GROUP)
+        .group(&crate::action_commands::ACTIONS_GROUP)
         .help(&MY_HELP);
 
-    let token = fs::read_to_string("token.txt")
-        .expect("Failed to read token from file. Make sure that the file 'token.txt' is valid");
+
+
+    #[cfg(debug_assertions)]
+    let token = fs::read_to_string("token_debug.txt")
+        .expect("Failed to read token from file. Make sure that the file 'token_debug.txt' is valid");
+
+    #[cfg(not(debug_assertions))]
+    let token = fs::read_to_string("token_release.txt")
+        .expect("Failed to read token from file. Make sure that the file 'token_release.txt' is valid");
 
     let mut client = Client::builder(token)
         .framework(framework)

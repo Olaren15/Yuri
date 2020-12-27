@@ -1,5 +1,5 @@
 mod action;
-mod action_commands;
+mod commands;
 mod image_repository;
 mod reply;
 
@@ -15,18 +15,19 @@ use std::{collections::HashSet, fs};
 async fn main() {
     let framework = StandardFramework::new()
         .configure(|c| c.prefix("!"))
-        .group(&crate::action_commands::ACTIONS_GROUP)
+        .group(&commands::actions::normal::ACTIONS_GROUP)
+        .group(&commands::actions::nsfw::NSFWACTIONS_GROUP)
         .help(&MY_HELP);
 
-
-
     #[cfg(debug_assertions)]
-    let token = fs::read_to_string("token_debug.txt")
-        .expect("Failed to read token from file. Make sure that the file 'token_debug.txt' is valid");
+    let token = fs::read_to_string("token_debug.txt").expect(
+        "Failed to read token from file. Make sure that the file 'token_debug.txt' is valid",
+    );
 
     #[cfg(not(debug_assertions))]
-    let token = fs::read_to_string("token_release.txt")
-        .expect("Failed to read token from file. Make sure that the file 'token_release.txt' is valid");
+    let token = fs::read_to_string("token_release.txt").expect(
+        "Failed to read token from file. Make sure that the file 'token_release.txt' is valid",
+    );
 
     let mut client = Client::builder(token)
         .framework(framework)

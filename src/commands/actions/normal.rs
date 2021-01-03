@@ -6,7 +6,7 @@ use serenity::framework::standard::CommandResult;
 use serenity::model::channel::{Message};
 
 #[group]
-#[commands(cuddle, hug, sad_hug, pat, kiss)]
+#[commands(cuddle, hug, sad_hug, pat, kiss, slap, handhold, bonk)]
 struct Actions;
 
 #[command]
@@ -95,3 +95,55 @@ async fn kiss(ctx: &Context, msg: &Message) -> CommandResult {
 
     Ok(())
 }
+
+#[command]
+#[description = "Slap someone by mentioning them!"]
+async fn slap(ctx: &Context, msg: &Message) -> CommandResult {
+    let action = Action {
+        everyone_text: String::from("Slapping everyone!"),
+        nobody_text: String::from("Nobody to slap ;-;\nmention someone to slap them!"),
+        normal_text: String::from("<@_s> slapped <@_r>"),
+        images_file: Some(String::from("slaps.txt")),
+    };
+
+    for replies in action.build_message(msg) {
+        replies.send(&ctx, &msg).await;
+    }
+
+    Ok(())
+}
+
+#[command]
+#[description = "Hold someone's hand by mentioning them!"]
+async fn handhold(ctx: &Context, msg: &Message) -> CommandResult {
+    let action = Action {
+        everyone_text: String::from("Holding everyone's hands!"),
+        nobody_text: String::from("Nobody to hold hands with ;-;\nmention someone to hold their hand!"),
+        normal_text: String::from("<@_s> held <@_r>'s hand :flushed:"),
+        images_file: Some(String::from("handholds.txt")),
+    };
+
+    for replies in action.build_message(msg) {
+        replies.send(&ctx, &msg).await;
+    }
+
+    Ok(())
+}
+
+#[command]
+#[description = "Bonk someone by mentioning them!"]
+async fn bonk(ctx: &Context, msg: &Message) -> CommandResult {
+    let action = Action {
+        everyone_text: String::from("Bonking everyone!"),
+        nobody_text: String::from("Nobody to bonk ;-;\nmention someone to bonk them!"),
+        normal_text: String::from("<@_s> bonked <@_r>"),
+        images_file: Some(String::from("bonks.txt")),
+    };
+
+    for replies in action.build_message(msg) {
+        replies.send(&ctx, &msg).await;
+    }
+
+    Ok(())
+}
+

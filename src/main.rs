@@ -14,7 +14,7 @@ use std::{collections::HashSet, fs};
 #[tokio::main]
 async fn main() {
     let framework = StandardFramework::new()
-        .configure(|c| c.prefix("!"))
+        .configure(|c| c.prefix(">"))
         .group(&commands::actions::normal::ACTIONS_GROUP)
         .group(&commands::actions::nsfw::NSFWACTIONS_GROUP)
         .help(&MY_HELP);

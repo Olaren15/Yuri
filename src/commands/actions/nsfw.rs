@@ -1,7 +1,6 @@
-use crate::action::Action;
+use crate::commands::actions::Action;
+use crate::commands::reactions::Reaction;
 
-use crate::image_repository::ImageRepository;
-use crate::reply::Reply;
 use serenity::client::Context;
 use serenity::framework::standard::macros::{check, command, group};
 use serenity::framework::standard::CheckResult::{Failure, Success};
@@ -25,16 +24,16 @@ async fn horny_check(
         Success
     } else {
         // don't show horny jail if checking with the help command
-        if !msg.content.contains("help"){
-            let reply = Reply {
-                message: String::from("This is not an nsfw channel >:("),
-                link: ImageRepository::get_random_link_from_file("bonks.txt"),
+        if !msg.content.contains("help") {
+            let reaction = Reaction {
+                text: String::from("This is not an nsfw channel >:("),
+                images_file: Some(String::from("bonks.txt")),
             };
 
-            reply.send(ctx, msg).await;
+            reaction.build_reply(msg).send(&ctx, &msg).await;
         }
 
-        Failure(Reason::User("H O R N Y".to_string()))
+        Failure(Reason::User(String::from("H O R N Y")))
     };
 }
 
@@ -49,7 +48,7 @@ async fn spank(ctx: &Context, msg: &Message) -> CommandResult {
         images_file: Some(String::from("spanks.txt")),
     };
 
-    for replies in action.build_message(msg) {
+    for replies in action.build_replies(msg) {
         replies.send(&ctx, &msg).await;
     }
 
@@ -67,7 +66,7 @@ async fn tease(ctx: &Context, msg: &Message) -> CommandResult {
         images_file: Some(String::from("teases.txt")),
     };
 
-    for replies in action.build_message(msg) {
+    for replies in action.build_replies(msg) {
         replies.send(&ctx, &msg).await;
     }
 

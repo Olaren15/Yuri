@@ -1,4 +1,4 @@
-use crate::action::Action;
+use crate::commands::actions::Action;
 
 use serenity::client::Context;
 use serenity::framework::standard::macros::{command, group};
@@ -19,7 +19,7 @@ async fn cuddle(ctx: &Context, msg: &Message) -> CommandResult {
         images_file: Some(String::from("cuddles.txt")),
     };
 
-    for replies in action.build_message(msg) {
+    for replies in action.build_replies(msg) {
         replies.send(&ctx, &msg).await;
     }
 
@@ -36,7 +36,7 @@ async fn hug(ctx: &Context, msg: &Message) -> CommandResult {
         images_file: Some(String::from("hugs.txt")),
     };
 
-    for replies in action.build_message(msg) {
+    for replies in action.build_replies(msg) {
         replies.send(&ctx, &msg).await;
     }
 
@@ -55,7 +55,7 @@ async fn sad_hug(ctx: &Context, msg: &Message) -> CommandResult {
         images_file: Some(String::from("sad-hugs.txt")),
     };
 
-    for replies in action.build_message(msg) {
+    for replies in action.build_replies(msg) {
         replies.send(&ctx, &msg).await;
     }
 
@@ -72,7 +72,7 @@ async fn pat(ctx: &Context, msg: &Message) -> CommandResult {
         images_file: Some(String::from("pats.txt")),
     };
 
-    for replies in action.build_message(msg) {
+    for replies in action.build_replies(msg) {
         replies.send(&ctx, &msg).await;
     }
 
@@ -89,7 +89,7 @@ async fn kiss(ctx: &Context, msg: &Message) -> CommandResult {
         images_file: Some(String::from("kisses.txt")),
     };
 
-    for replies in action.build_message(msg) {
+    for replies in action.build_replies(msg) {
         replies.send(&ctx, &msg).await;
     }
 
@@ -106,7 +106,7 @@ async fn slap(ctx: &Context, msg: &Message) -> CommandResult {
         images_file: Some(String::from("slaps.txt")),
     };
 
-    for replies in action.build_message(msg) {
+    for replies in action.build_replies(msg) {
         replies.send(&ctx, &msg).await;
     }
 
@@ -123,7 +123,7 @@ async fn handhold(ctx: &Context, msg: &Message) -> CommandResult {
         images_file: Some(String::from("handholds.txt")),
     };
 
-    for replies in action.build_message(msg) {
+    for replies in action.build_replies(msg) {
         replies.send(&ctx, &msg).await;
     }
 
@@ -140,7 +140,7 @@ async fn bonk(ctx: &Context, msg: &Message) -> CommandResult {
         images_file: Some(String::from("bonks.txt")),
     };
 
-    for replies in action.build_message(msg) {
+    for replies in action.build_replies(msg) {
         replies.send(&ctx, &msg).await;
     }
 

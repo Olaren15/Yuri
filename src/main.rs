@@ -1,4 +1,3 @@
-mod action;
 mod commands;
 mod image_repository;
 mod reply;
@@ -17,6 +16,7 @@ async fn main() {
         .configure(|c| c.prefix(">"))
         .group(&commands::actions::normal::ACTIONS_GROUP)
         .group(&commands::actions::nsfw::NSFWACTIONS_GROUP)
+        .group(&commands::reactions::normal::REACTIONS_GROUP)
         .help(&MY_HELP);
 
     #[cfg(debug_assertions)]

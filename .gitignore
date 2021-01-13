@@ -13,6 +13,4 @@ Cargo.lock
 
 .idea/
 
-# bot token file
-token_debug.txt
-token_release.txt
+common/data.sql

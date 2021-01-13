@@ -1,0 +1,2 @@
+[workspace]
+members = ["discord", "web", "common"]

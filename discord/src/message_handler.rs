@@ -23,6 +23,42 @@ impl MessageHandler {
             &message_text[1..]
         }
     }
+
+    async fn handle_built_in_commands(&self, ctx: &Context, msg: &Message) -> bool {
+        if msg.content[1..].starts_with("help") {
+            let command_text = if let Ok(commands) = CommandRepository::new(&self.connection)
+                .get_all_commands()
+                .await
+            {
+                commands.iter().map(|command| {
+                    format!("{}\n", command.name)
+                }).collect()
+            } else {
+                String::from("")
+            };
+
+            Reply::from_str(msg, command_text.as_str()).send(ctx).await;
+
+            return true;
+        }
+
+        false
+    }
+
+    async fn handle_dynamic_commands(&self, ctx: &Context, msg: &Message) -> bool {
+        if let Ok(command) = CommandRepository::new(&self.connection)
+            .get_command_from_name(MessageHandler::extract_command_name(msg.content.as_str()))
+            .await
+        {
+            for reply in Reply::from_command(&command, &msg) {
+                reply.send(&ctx).await;
+            }
+
+            return true;
+        }
+
+        false
+    }
 }
 
 #[async_trait]
@@ -32,19 +68,19 @@ impl EventHandler for MessageHandler {
             .content
             .starts_with(self.settings.command_prefix.as_str())
         {
-            let command_name = MessageHandler::extract_command_name(msg.content.as_str());
-
-            if let Ok(command) = CommandRepository::new(&self.connection)
-                .get_command_from_name(command_name)
-                .await
-            {
-                for reply in Reply::build_from_command(&command, &msg) {
-                    reply.send(&ctx).await;
+            if !self.handle_built_in_commands(&ctx, &msg).await {
+                if !self.handle_dynamic_commands(&ctx, &msg).await {
+                    Reply::from_str(
+                        &msg,
+                        format!(
+                            "Command \"{}\" not recognized",
+                            MessageHandler::extract_command_name(msg.content.as_str())
+                        )
+                        .as_str(),
+                    )
+                    .send(&ctx)
+                    .await;
                 }
-            } else {
-                msg.reply(ctx, format!("Command \"{}\" not recognized", command_name))
-                    .await
-                    .ok();
             }
         }
     }

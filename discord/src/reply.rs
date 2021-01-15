@@ -31,7 +31,7 @@ impl Reply {
         formatted_message
     }
 
-    pub fn build_from_command(command: &Command, msg: &Message) -> Vec<Reply> {
+    pub fn from_command(command: &Command, msg: &Message) -> Vec<Reply> {
         if msg.content.contains("everyone") {
             vec![Reply {
                 message: msg.clone(),
@@ -65,6 +65,14 @@ impl Reply {
                     link: None,
                 })
                 .collect()
+        }
+    }
+
+    pub fn from_str(msg: &Message, text: &str) -> Reply {
+        Reply {
+            message: msg.clone(),
+            message_text: text.to_string(),
+            link: None,
         }
     }
 

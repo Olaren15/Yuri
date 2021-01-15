@@ -7,15 +7,13 @@ pub struct CommandRepository {
 }
 
 impl CommandRepository {
-    pub async fn new() -> CommandRepository {
+    pub fn new(connection: &DbConnection) -> CommandRepository {
         CommandRepository {
-            connection: DbConnection::new().await,
+            connection: connection.clone(),
         }
     }
 
     pub async fn get_command_from_name(&self, command_name: &str) -> Result<Command, sqlx::Error> {
-        println!("{}", command_name);
-
         let row = sqlx::query(
             "
                 SELECT *

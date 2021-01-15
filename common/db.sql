@@ -4,7 +4,7 @@ USE yuri;
 
 CREATE TABLE settings (
 	id             int          NOT NULL AUTO_INCREMENT,
-	weight         int          NOT NULL DEFAULT 0,
+	weight         int UNIQUE   NOT NULL DEFAULT 0,
 	debug_token    varchar(255) NOT NULL DEFAULT '',
 	release_token  varchar(255) NOT NULL DEFAULT '',
 	command_prefix varchar(1)   NOT NULL DEFAULT '-',
@@ -12,13 +12,13 @@ CREATE TABLE settings (
 );
 
 CREATE TABLE commands (
-	id              int          NOT NULL AUTO_INCREMENT,
-	name            varchar(255) NOT NULL DEFAULT '',
-	description     varchar(255) NOT NULL DEFAULT '',
-	everyone_text   varchar(255) NOT NULL DEFAULT '',
-	nobody_text     varchar(255) NOT NULL DEFAULT '',
-	one_person_text varchar(255) NOT NULL DEFAULT '',
-	is_nsfw         bool                  DEFAULT FALSE,
+	id              int                 NOT NULL AUTO_INCREMENT,
+	name            varchar(255) UNIQUE NOT NULL DEFAULT '',
+	description     varchar(255)        NOT NULL DEFAULT '',
+	everyone_text   varchar(255)        NOT NULL DEFAULT '',
+	nobody_text     varchar(255)        NOT NULL DEFAULT '',
+	one_person_text varchar(255)        NOT NULL DEFAULT '',
+	is_nsfw         bool                         DEFAULT FALSE,
 	PRIMARY KEY (id)
 );
 

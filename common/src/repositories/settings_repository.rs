@@ -7,9 +7,9 @@ pub struct SettingsRepository {
 }
 
 impl SettingsRepository {
-    pub async fn new() -> SettingsRepository {
+    pub fn new(connection: &DbConnection) -> SettingsRepository {
         SettingsRepository {
-            connection: DbConnection::new().await,
+            connection: connection.clone(),
         }
     }
 

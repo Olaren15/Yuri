@@ -1,3 +1,4 @@
+#[derive(sqlx::FromRow)]
 pub struct Settings {
     pub id: i32,
     pub weight: i32,

@@ -1,6 +1,4 @@
-use crate::db_connection::DbConnection;
-use crate::models::command::Command;
-use sqlx::Row;
+use crate::{db_connection::DbConnection, models::command::Command};
 
 pub struct CommandRepository {
     connection: DbConnection,
@@ -14,28 +12,27 @@ impl CommandRepository {
     }
 
     pub async fn get_command_from_name(&self, command_name: &str) -> Result<Command, sqlx::Error> {
-        let row = sqlx::query(
+        sqlx::query_as::<_, Command>(
             "
                 SELECT *
                 FROM commands
                 WHERE name = ?
                 LIMIT 1
-        ",
+                ",
         )
         .bind(command_name)
         .fetch_one(&self.connection.pool)
-        .await?;
+        .await
+    }
 
-        let command = Command {
-            id: row.try_get("id")?,
-            name: row.try_get("name")?,
-            description: row.try_get("description")?,
-            everyone_text: row.try_get("everyone_text")?,
-            nobody_text: row.try_get("nobody_text")?,
-            one_person_text: row.try_get("one_person_text")?,
-            is_nsfw: row.try_get("is_nsfw")?,
-        };
-
-        Ok(command)
+    pub async fn get_all_commands(&self) -> Result<Vec<Command>, sqlx::Error> {
+        sqlx::query_as::<_, Command>(
+            "
+                SELECT *
+                FROM commands
+                ",
+        )
+        .fetch_all(&self.connection.pool)
+        .await
     }
 }

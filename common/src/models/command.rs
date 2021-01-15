@@ -1,3 +1,4 @@
+#[derive(sqlx::FromRow)]
 pub struct Command {
     pub id: i32,
     pub name: String,

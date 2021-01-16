@@ -17,7 +17,7 @@ pub struct MessageHandler {
 
 impl MessageHandler {
     fn extract_command_name(message_text: &str) -> &str {
-        if let Some(first_space_index) = message_text.find(" ") {
+        if let Some(first_space_index) = message_text.find(' ') {
             &message_text[1..first_space_index]
         } else {
             &message_text[1..]
@@ -30,9 +30,10 @@ impl MessageHandler {
                 .get_all_commands()
                 .await
             {
-                commands.iter().map(|command| {
-                    format!("{}\n", command.name)
-                }).collect()
+                commands
+                    .iter()
+                    .map(|command| format!("{}\n", command.name))
+                    .collect()
             } else {
                 String::from("")
             };
@@ -67,21 +68,19 @@ impl EventHandler for MessageHandler {
         if msg
             .content
             .starts_with(self.settings.command_prefix.as_str())
+            && !self.handle_built_in_commands(&ctx, &msg).await
+            && !self.handle_dynamic_commands(&ctx, &msg).await
         {
-            if !self.handle_built_in_commands(&ctx, &msg).await {
-                if !self.handle_dynamic_commands(&ctx, &msg).await {
-                    Reply::from_str(
-                        &msg,
-                        format!(
-                            "Command \"{}\" not recognized",
-                            MessageHandler::extract_command_name(msg.content.as_str())
-                        )
-                        .as_str(),
-                    )
-                    .send(&ctx)
-                    .await;
-                }
-            }
+            Reply::from_str(
+                &msg,
+                format!(
+                    "Command \"{}\" not recognized",
+                    MessageHandler::extract_command_name(msg.content.as_str())
+                )
+                .as_str(),
+            )
+            .send(&ctx)
+            .await;
         }
     }
 

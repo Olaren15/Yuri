@@ -1,14 +1,14 @@
-use crate::reply::Reply;
-
-use common::{models::settings::Settings, repositories::command_repository::CommandRepository};
-
-use common::db_connection::DbConnection;
 use serenity::model::gateway::Activity;
 use serenity::{
     async_trait,
     client::{Context, EventHandler},
     model::{channel::Message, gateway::Ready},
 };
+
+use common::db_connection::DbConnection;
+use common::{models::settings::Settings, repositories::command_repository::CommandRepository};
+
+use crate::reply::Reply;
 
 pub struct MessageHandler {
     pub settings: Settings,
@@ -51,7 +51,7 @@ impl MessageHandler {
             .get_command_from_name(MessageHandler::extract_command_name(msg.content.as_str()))
             .await
         {
-            for reply in Reply::from_command(&command, &msg) {
+            for reply in Reply::from_command(&command, &msg, &self.connection).await {
                 reply.send(&ctx).await;
             }
 

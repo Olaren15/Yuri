@@ -1,8 +1,11 @@
-use common::models::command::Command;
 use serenity::client::Context;
 use serenity::model::channel::Message;
 use serenity::model::user::User;
 use serenity::utils::Color;
+
+use common::db_connection::DbConnection;
+use common::models::command::Command;
+use common::repositories::image_repository::ImageRepository;
 
 pub struct Reply {
     message: Message,
@@ -31,7 +34,11 @@ impl Reply {
         formatted_message
     }
 
-    pub fn from_command(command: &Command, msg: &Message) -> Vec<Reply> {
+    pub async fn from_command(
+        command: &Command,
+        msg: &Message,
+        connection: &DbConnection,
+    ) -> Vec<Reply> {
         if msg.content.contains("everyone") {
             vec![Reply {
                 message: msg.clone(),
@@ -40,7 +47,10 @@ impl Reply {
                     &msg.author,
                     None,
                 ),
-                link: None,
+                link: ImageRepository::new(connection)
+                    .get_random_link_from_command(&command)
+                    .await
+                    .ok(),
             }]
         } else if msg.mentions.is_empty() {
             vec![Reply {
@@ -50,21 +60,30 @@ impl Reply {
                     &msg.author,
                     None,
                 ),
-                link: None,
+                link: ImageRepository::new(connection)
+                    .get_random_link_from_command(&command)
+                    .await
+                    .ok(),
             }]
         } else {
-            msg.mentions
-                .iter()
-                .map(|mention: &User| Reply {
+            let mut replies = vec![];
+
+            for mention in msg.mentions.clone() {
+                replies.push(Reply {
                     message: msg.clone(),
                     message_text: Reply::format_user_mentions(
                         command.one_person_text.as_str(),
                         &msg.author,
                         Some(&mention),
                     ),
-                    link: None,
-                })
-                .collect()
+                    link: ImageRepository::new(connection)
+                        .get_random_link_from_command(&command)
+                        .await
+                        .ok(),
+                });
+            }
+
+            replies
         }
     }
 

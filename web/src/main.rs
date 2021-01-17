@@ -1,3 +1,4 @@
+use actix_files::Files;
 use actix_web::{web::Data, App, HttpServer};
 use handlebars::Handlebars;
 
@@ -20,8 +21,13 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(handlebars_ref.clone())
             .configure(home_controller::register)
+            .service(
+                Files::new("/public", "src/public")
+                    .show_files_listing()
+                    .use_last_modified(true),
+            )
     })
-    .bind("127.0.0.1:8080")?
+    .bind("127.0.0.1:6969")?
     .run()
     .await
 }

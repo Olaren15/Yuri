@@ -1,13 +1,15 @@
+use serenity::prelude::*;
+
+use common::db_connection::DbConnection;
+use common::repositories::settings_repository::SettingsRepository;
+
+use crate::message_handler::MessageHandler;
+
 mod message_handler;
 mod reply;
 
-use crate::message_handler::MessageHandler;
-use common::db_connection::DbConnection;
-use common::repositories::settings_repository::SettingsRepository;
-use serenity::prelude::*;
-
 #[tokio::main]
-async fn main() {
+async fn main() -> serenity::Result<()> {
     let connection = DbConnection::new().await;
 
     let settings = SettingsRepository::new(&connection)
@@ -20,13 +22,10 @@ async fn main() {
         connection,
     };
 
-    if let Err(why) = Client::builder(handler.settings.get_token_from_config())
+    Client::builder(handler.settings.get_token_from_config())
         .event_handler(handler)
         .await
         .expect("Err creating client")
         .start()
         .await
-    {
-        println!("Client error: {:?}", why);
-    }
 }

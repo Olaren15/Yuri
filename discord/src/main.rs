@@ -22,7 +22,7 @@ async fn main() -> serenity::Result<()> {
         connection,
     };
 
-    Client::builder(handler.settings.get_token_from_config())
+    Client::builder(handler.settings.bot_token.as_str())
         .event_handler(handler)
         .await
         .expect("Err creating client")

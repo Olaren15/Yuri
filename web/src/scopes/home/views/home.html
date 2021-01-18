@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{title}}</title>
+</head>
+<body>
+{{#if logged_in}}
+    <p>Hello, {{name}}</p>
+    <a href="/auth/revoke">logout</a>
+{{else}}
+    <p>Please log in</p>
+    <a href="/auth/authorize">login</a>
+{{/if}}
+</body>
+</html>

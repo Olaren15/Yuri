@@ -1,6 +1,6 @@
 use serde::Serialize;
 
 #[derive(Serialize)]
-pub struct HomeModel {
-    pub title: String,
+pub struct ErrorModel {
+    pub what: String,
 }

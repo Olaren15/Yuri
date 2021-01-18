@@ -3,11 +3,13 @@ CREATE DATABASE IF NOT EXISTS yuri DEFAULT CHARACTER SET utf8 COLLATE utf8_unico
 USE yuri;
 
 CREATE TABLE settings (
-	id             int          NOT NULL AUTO_INCREMENT,
-	weight         int UNIQUE   NOT NULL DEFAULT 0,
-	debug_token    varchar(255) NOT NULL DEFAULT '',
-	release_token  varchar(255) NOT NULL DEFAULT '',
-	command_prefix varchar(1)   NOT NULL DEFAULT '-',
+	id                   int          NOT NULL AUTO_INCREMENT,
+	is_release           bool         NOT NULL DEFAULT FALSE,
+	weight               int UNIQUE   NOT NULL DEFAULT 0,
+	command_prefix       varchar(1)   NOT NULL DEFAULT '-',
+	bot_token            varchar(255) NOT NULL DEFAULT '',
+	oauth2_client_id     varchar(255) NOT NULL DEFAULT '',
+	oauth2_client_secret varchar(255) NOT NULL DEFAULT '',
 	PRIMARY KEY (id)
 );
 

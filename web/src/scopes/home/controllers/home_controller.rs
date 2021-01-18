@@ -5,7 +5,7 @@ use actix_web::{
 };
 use handlebars::Handlebars;
 
-use crate::models::home_model::HomeModel;
+use crate::scopes::home::models::home_model::HomeModel;
 
 pub fn register(cfg: &mut ServiceConfig) {
     cfg.service(home);
@@ -19,6 +19,8 @@ async fn home(handlebars: Data<Handlebars<'_>>) -> impl Responder {
                 "home",
                 &HomeModel {
                     title: String::from("Yuri"),
+                    logged_in: false,
+                    name: String::from("ree"),
                 },
             )
             .unwrap_or_default(),

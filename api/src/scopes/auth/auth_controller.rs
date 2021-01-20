@@ -7,14 +7,17 @@ use actix_web::{
     get,
     http::header,
     web,
-    web::{Data, Query, ServiceConfig},
+    web::{Data, Json, Query, ServiceConfig},
     HttpRequest, HttpResponse, Responder,
 };
 
 use common::{db_connection::DbConnection, repositories::settings_repository::SettingsRepository};
 
-use crate::scopes::auth::models::o_auth::{
-    AccessTokenExchange, AccessTokenFormData, AccessTokenResponse, CallbackData,
+use crate::{
+    models::server_response::ServerResponse,
+    scopes::auth::models::o_auth::{
+        AccessTokenExchange, AccessTokenFormData, AccessTokenResponse, CallbackData,
+    },
 };
 
 pub fn register(cfg: &mut ServiceConfig) {
@@ -22,7 +25,6 @@ pub fn register(cfg: &mut ServiceConfig) {
         web::scope("/auth")
             .service(authorize)
             .service(callback)
-            .service(refresh)
             .service(revoke),
     );
 }
@@ -59,6 +61,8 @@ async fn callback(
     session: Session,
     req: HttpRequest,
 ) -> impl Responder {
+    let err_msg;
+
     if let Ok(settings) = SettingsRepository::new(&connection)
         .get_highest_weight_settings()
         .await
@@ -99,16 +103,17 @@ async fn callback(
                 return HttpResponse::SeeOther()
                     .header(header::LOCATION, "/")
                     .finish();
+            } else {
+                err_msg = "Failed to parse Discord response";
             }
+        } else {
+            err_msg = "Failed to retrieve token from the Discord server";
         }
+    } else {
+        err_msg = "Server error";
     }
 
-    HttpResponse::InternalServerError().finish()
-}
-
-#[get("/refresh")]
-async fn refresh() -> impl Responder {
-    HttpResponse::Ok().body("Unimplemented!")
+    HttpResponse::InternalServerError().body(err_msg)
 }
 
 #[get("/revoke")]
@@ -122,9 +127,15 @@ async fn revoke(session: Session) -> impl Responder {
             .await
             .is_ok()
         {
-            return HttpResponse::Ok().body("logged out");
+            return Json(ServerResponse {
+                code: 200,
+                message: String::from(""),
+            });
         }
     }
 
-    HttpResponse::InternalServerError().body("failed to revoke token")
+    Json(ServerResponse {
+        code: 500,
+        message: String::from("failed to revoke token"),
+    })
 }

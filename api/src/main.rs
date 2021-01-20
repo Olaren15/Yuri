@@ -6,6 +6,7 @@ use rand::RngCore;
 use common::db_connection::DbConnection;
 use scopes::auth::auth_controller;
 
+mod models;
 mod scopes;
 
 #[actix_web::main]

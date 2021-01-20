@@ -1,2 +1,2 @@
 [workspace]
-members = ["discord", "web", "common"]
+members = ["discord", "api", "common"]

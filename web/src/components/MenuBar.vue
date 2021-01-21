@@ -2,17 +2,6 @@
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
       <div>
-        <label v-if="user !== null && user.servers.length > 0" class="me-2">
-          <select class="form-select">
-            <option
-                v-for="server in user.servers"
-                :key="server.id"
-                :value="server.id"
-            >
-              {{ server.name }}
-            </option>
-          </select>
-        </label>
         <a class="btn btn-outline-secondary"
            href="https://discord.com/oauth2/authorize?client_id=791318841384108072&scope=bot"
         >
@@ -21,7 +10,8 @@
       </div>
       <div>
         <div v-if="user !== null">
-          <h3 class="me-3 align-middle">{{ user.username }} #{{ user.discriminator }}</h3>
+          <h3 class="me-2 align-middle">{{ user.username }} #{{ user.discriminator }}</h3>
+          <img :src="user.icon_url" class="user-icon me-4">
           <a class="btn btn-danger" href="/api/auth/logout">Log out</a>
         </div>
         <div v-else>
@@ -37,6 +27,7 @@ export default {
   name: "MenuBar",
   props: {
     user: {
+      type: Object,
       required: true,
       default: null,
     }
@@ -48,5 +39,10 @@ export default {
 h3 {
   margin-bottom: 0;
   display: inline;
+}
+
+.user-icon {
+  max-height: 50px;
+  border-radius: 50%;
 }
 </style>

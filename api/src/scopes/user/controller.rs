@@ -5,7 +5,7 @@ use actix_web::{
     Responder,
 };
 
-use crate::scopes::user::repositories::user_repository::UserRepository;
+use crate::scopes::user::repository::UserRepository;
 
 pub fn register(cfg: &mut ServiceConfig) {
     cfg.service(web::scope("/user").service(current));

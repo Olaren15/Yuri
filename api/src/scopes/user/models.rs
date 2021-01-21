@@ -22,5 +22,4 @@ pub struct YuriUser {
     pub username: String,
     pub discriminator: i32,
     pub icon_url: String,
-    pub servers: Vec<i32>, // i32 temporary
 }

@@ -3,8 +3,10 @@ use actix_web::dev::ConnectionInfo;
 
 use common::models::settings::Settings;
 
-use crate::scopes::auth::models::o_auth::{AccessTokenExchange, AuthSession};
-use crate::{discord_requests::DiscordRequest, scopes::auth::models::o_auth::AccessTokenResponse};
+use crate::{
+    discord_requests::DiscordRequest,
+    scopes::auth::models::{AccessTokenExchange, AccessTokenResponse},
+};
 
 pub struct AuthRepository;
 
@@ -16,7 +18,7 @@ impl AuthRepository {
                 &redirect_uri={}://{}/api/auth/callback\
                 &response_type=code\
                 &scope=identify guilds",
-            DiscordRequest::BASE_URI,
+            DiscordRequest::API_BASE_URI,
             settings.oauth2_client_id,
             conn_info.scheme(),
             conn_info.host()
@@ -29,7 +31,11 @@ impl AuthRepository {
         conn_info: &ConnectionInfo,
     ) -> Option<AccessTokenResponse> {
         Client::new()
-            .post(format!("{}{}", DiscordRequest::BASE_URI, "/oauth2/token"))
+            .post(format!(
+                "{}{}",
+                DiscordRequest::API_BASE_URI,
+                "/oauth2/token"
+            ))
             .send_form(&AccessTokenExchange {
                 client_id: settings.oauth2_client_id.clone(),
                 client_secret: settings.oauth2_client_secret.clone(),
@@ -47,9 +53,5 @@ impl AuthRepository {
             .json::<AccessTokenResponse>()
             .await
             .ok()
-    }
-
-    pub fn refresh_token(_: &AuthSession) {
-        unimplemented!()
     }
 }

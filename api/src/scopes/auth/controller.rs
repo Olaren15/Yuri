@@ -13,8 +13,8 @@ use actix_web::{
 use common::{db_connection::DbConnection, repositories::settings_repository::SettingsRepository};
 
 use crate::scopes::auth::{
-    models::o_auth::{AuthSession, CallbackData},
-    repositories::auth_repository::AuthRepository,
+    models::{AuthSession, CallbackData},
+    repository::AuthRepository,
 };
 
 pub fn register(cfg: &mut ServiceConfig) {

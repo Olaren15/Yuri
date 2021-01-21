@@ -1,3 +1,3 @@
-pub mod auth_controller;
+pub mod controller;
 pub mod models;
-pub mod repositories;
+pub mod repository;

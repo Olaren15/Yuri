@@ -1,10 +1,9 @@
-use actix_files::Files;
 use actix_session::CookieSession;
 use actix_web::{web, web::Data, App, HttpServer};
 use rand::RngCore;
 
 use common::db_connection::DbConnection;
-use scopes::auth::auth_controller;
+use scopes::{auth::auth_controller, user::user_controller};
 
 mod models;
 mod scopes;
@@ -23,11 +22,7 @@ async fn main() -> std::io::Result<()> {
             .service(
                 web::scope("/api")
                     .configure(auth_controller::register)
-                    .service(
-                        Files::new("/public", "src/public")
-                            .show_files_listing()
-                            .use_last_modified(true),
-                    ),
+                    .configure(user_controller::register),
             )
     })
     .bind("127.0.0.1:6969")?

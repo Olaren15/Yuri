@@ -1,13 +1,32 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/yuri.png">
-    <p>It's not like I like you or anything... baka!</p>
+    <MenuBar v-bind:user="user"/>
   </div>
 </template>
 
 <script>
+import MenuBar from "@/components/MenuBar";
+
 export default {
   name: 'App',
+  components: {
+    MenuBar
+  },
+  data() {
+    return {
+      user: null,
+    };
+  },
+  created() {
+    this.fetchUser();
+  },
+  methods: {
+    fetchUser() {
+      fetch('/api/user/current')
+          .then(response => response.json())
+          .then(json => this.user = json);
+    }
+  }
 }
 </script>
 
@@ -16,8 +35,6 @@ export default {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+  height: 100vh;
 }
 </style>

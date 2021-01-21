@@ -3,21 +3,18 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use actix_session::Session;
 use actix_web::{
-    client::Client,
     get,
     http::header,
     web,
-    web::{Data, Json, Query, ServiceConfig},
+    web::{Data, Query, ServiceConfig},
     HttpRequest, HttpResponse, Responder,
 };
 
 use common::{db_connection::DbConnection, repositories::settings_repository::SettingsRepository};
 
-use crate::{
-    models::server_response::ServerResponse,
-    scopes::auth::models::o_auth::{
-        AccessTokenExchange, AccessTokenFormData, AccessTokenResponse, CallbackData,
-    },
+use crate::scopes::auth::{
+    models::o_auth::{AuthSession, CallbackData},
+    repositories::auth_repository::AuthRepository,
 };
 
 pub fn register(cfg: &mut ServiceConfig) {
@@ -29,25 +26,17 @@ pub fn register(cfg: &mut ServiceConfig) {
     );
 }
 
-#[get("/authorize")]
+#[get("/login")]
 async fn authorize(connection: Data<DbConnection>, req: HttpRequest) -> impl Responder {
     if let Ok(settings) = SettingsRepository::new(&connection)
         .get_highest_weight_settings()
         .await
     {
-        let redirect = format!(
-            "https://discord.com/api/v8/oauth2/authorize\
-            ?client_id={}\
-            &redirect_uri={}://{}/api/auth/callback\
-            &response_type=code\
-            &scope=identify guilds",
-            settings.oauth2_client_id,
-            req.connection_info().scheme(),
-            req.connection_info().host()
-        );
-
         HttpResponse::SeeOther()
-            .header(header::LOCATION, redirect)
+            .header(
+                header::LOCATION,
+                AuthRepository::build_authorization_url(&settings, &req.connection_info()),
+            )
             .finish()
     } else {
         HttpResponse::InternalServerError().finish()
@@ -67,75 +56,44 @@ async fn callback(
         .get_highest_weight_settings()
         .await
     {
-        let form_data = AccessTokenExchange {
-            client_id: settings.oauth2_client_id,
-            client_secret: settings.oauth2_client_secret,
-            grant_type: String::from("authorization_code"),
-            code: callback.code.clone(),
-            redirect_uri: format!(
-                "{}://{}/api/auth/callback",
-                req.connection_info().scheme(),
-                req.connection_info().host()
-            ),
-            scope: String::from("identify guilds"),
-        };
-
-        if let Ok(mut response) = Client::new()
-            .post("https://discord.com/api/v8/oauth2/token")
-            .send_form(&form_data)
-            .await
+        if let Some(token_response) =
+            AuthRepository::exchange_access_token(&settings, &callback.code, &req.connection_info())
+                .await
         {
-            if let Ok(response) = response.json::<AccessTokenResponse>().await {
-                session.set("access_token", response.access_token).ok();
-                session.set("refresh_token", response.refresh_token).ok();
-                session
-                    .set(
-                        "token_expire_time",
-                        SystemTime::now()
+            session
+                .set(
+                    "auth",
+                    AuthSession {
+                        access_token: token_response.access_token,
+                        refresh_token: token_response.refresh_token,
+                        expire_time: SystemTime::now()
                             .duration_since(UNIX_EPOCH)
                             .unwrap()
-                            .add(Duration::from_secs(response.expires_in as u64))
+                            .add(Duration::from_secs(token_response.expires_in as u64))
                             .as_secs(),
-                    )
-                    .ok();
+                    },
+                )
+                .ok()
+                .unwrap();
 
-                // redirect home
-                return HttpResponse::SeeOther()
-                    .header(header::LOCATION, "/")
-                    .finish();
-            } else {
-                err_msg = "Failed to parse Discord response";
-            }
+            return HttpResponse::SeeOther()
+                .header(header::LOCATION, "/")
+                .finish();
         } else {
-            err_msg = "Failed to retrieve token from the Discord server";
+            err_msg = "Failed to connect to discord servers";
         }
     } else {
-        err_msg = "Server error";
+        err_msg = "Internal Server Error";
     }
 
     HttpResponse::InternalServerError().body(err_msg)
 }
 
-#[get("/revoke")]
+#[get("/logout")]
 async fn revoke(session: Session) -> impl Responder {
-    if let Some(access_token) = session.get::<String>("access_token").unwrap() {
-        let form_data = AccessTokenFormData { access_token };
+    session.remove("auth");
 
-        if Client::new()
-            .post("https://discord.com/api/v8/oauth2/revoke")
-            .send_form(&form_data)
-            .await
-            .is_ok()
-        {
-            return Json(ServerResponse {
-                code: 200,
-                message: String::from(""),
-            });
-        }
-    }
-
-    Json(ServerResponse {
-        code: 500,
-        message: String::from("failed to revoke token"),
-    })
+    HttpResponse::SeeOther()
+        .header(header::LOCATION, "/")
+        .finish()
 }

@@ -28,3 +28,10 @@ pub struct AccessTokenResponse {
 pub struct AccessTokenFormData {
     pub access_token: String,
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct AuthSession {
+    pub access_token: String,
+    pub refresh_token: String,
+    pub expire_time: u64,
+}

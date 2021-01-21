@@ -21,10 +21,11 @@
       </div>
       <div>
         <div v-if="user !== null">
-          <h4>{{ user.username }} #{{ user.discriminator }}</h4>
+          <h3 class="me-3 align-middle">{{ user.username }} #{{ user.discriminator }}</h3>
+          <a class="btn btn-danger" href="/api/auth/logout">Log out</a>
         </div>
         <div v-else>
-          <a class="btn btn-primary" href="/api/auth/authorize">Log in</a>
+          <a class="btn btn-primary" href="/api/auth/login">Log in</a>
         </div>
       </div>
     </div>
@@ -44,7 +45,8 @@ export default {
 </script>
 
 <style scoped>
-h4 {
-  margin: 0;
+h3 {
+  margin-bottom: 0;
+  display: inline;
 }
 </style>

@@ -5,6 +5,7 @@ use rand::RngCore;
 use common::db_connection::DbConnection;
 use scopes::{auth::auth_controller, user::user_controller};
 
+mod discord_requests;
 mod models;
 mod scopes;
 

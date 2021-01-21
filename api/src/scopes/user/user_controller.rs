@@ -13,8 +13,8 @@ pub fn register(cfg: &mut ServiceConfig) {
 
 #[get("/current")]
 async fn current(session: Session) -> impl Responder {
-    let user = if let Some(access_token) = session.get("access_token").unwrap() {
-        UserRepository::new(access_token).get_yuri_user().await
+    let user = if let Some(auth) = session.get("auth").unwrap() {
+        UserRepository::get_yuri_user(&auth).await
     } else {
         None
     };

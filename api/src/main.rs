@@ -3,7 +3,7 @@ use actix_web::{web, web::Data, App, HttpServer};
 use rand::RngCore;
 
 use common::db_connection::DbConnection;
-use scopes::{auth, user};
+use scopes::{auth, commands, user};
 
 mod discord_requests;
 mod scopes;
@@ -22,7 +22,8 @@ async fn main() -> std::io::Result<()> {
             .service(
                 web::scope("/api")
                     .configure(auth::controller::register)
-                    .configure(user::controller::register),
+                    .configure(user::controller::register)
+                    .configure(commands::controller::register),
             )
     })
     .bind("127.0.0.1:6969")?

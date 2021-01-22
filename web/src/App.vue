@@ -1,16 +1,21 @@
 <template>
   <div id="app">
     <MenuBar v-bind:user="user"/>
+    <div class="container-lg">
+      <CommandList v-if="user !== null"/>
+    </div>
   </div>
 </template>
 
 <script>
 import MenuBar from "@/components/MenuBar";
+import CommandList from "@/components/CommandList";
 
 export default {
   name: 'App',
   components: {
-    MenuBar
+    MenuBar,
+    CommandList
   },
   data() {
     return {

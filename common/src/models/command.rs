@@ -1,4 +1,6 @@
-#[derive(sqlx::FromRow)]
+use serde::Serialize;
+
+#[derive(sqlx::FromRow, Serialize)]
 pub struct Command {
     pub id: i32,
     pub name: String,

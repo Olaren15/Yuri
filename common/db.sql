@@ -24,6 +24,18 @@ CREATE TABLE commands (
 	PRIMARY KEY (id)
 );
 
+CREATE TABLE guilds (
+	id int NOT NULL,
+	PRIMARY KEY (id)
+);
+
+CREATE TABLE command_guild (
+	command_id int NOT NULL,
+	guild_id   int NOT NULL,
+	FOREIGN KEY (command_id) REFERENCES commands (id),
+	FOREIGN KEY (guild_id) REFERENCES guilds (id)
+);
+
 CREATE TABLE images (
 	id         int          NOT NULL AUTO_INCREMENT,
 	command_id int          NOT NULL,

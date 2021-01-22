@@ -11,7 +11,7 @@
       <div>
         <div v-if="user !== null">
           <h3 class="me-2 align-middle">{{ user.username }} #{{ user.discriminator }}</h3>
-          <img :src="user.icon_url" class="user-icon me-4">
+          <img :src="user.icon_url" alt="User prifile picture" class="user-icon me-4">
           <a class="btn btn-danger" href="/api/auth/logout">Log out</a>
         </div>
         <div v-else>
@@ -27,7 +27,6 @@ export default {
   name: "MenuBar",
   props: {
     user: {
-      type: Object,
       required: true,
       default: null,
     }

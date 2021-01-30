@@ -44,7 +44,7 @@ impl BuiltInCommands {
                 .await
             {
                 Ok(_) => message = String::from("Successfully registered this server! You can now configure it using the web interface!"),
-                Err(msg) => message = msg.clone(),
+                Err(msg) => message = msg,
             }
         } else {
             message = String::from("Sorry, I can't register DM channels.");

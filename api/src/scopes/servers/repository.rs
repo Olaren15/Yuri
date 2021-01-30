@@ -26,7 +26,7 @@ impl ServerRepository {
                     .filter(|guild| {
                         for yuri_guild in &yuri_guilds {
                             if let Ok(guild_id) = guild.id.parse::<u64>() {
-                                if guild_id == yuri_guild.to_owned() {
+                                if guild_id == *yuri_guild {
                                     return true;
                                 }
                             }

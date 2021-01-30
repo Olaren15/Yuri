@@ -27,7 +27,7 @@ impl AuthRepository {
 
     pub async fn exchange_access_token(
         settings: &Settings,
-        code: &String,
+        code: &str,
         conn_info: &ConnectionInfo,
     ) -> Option<AccessTokenResponse> {
         Client::new()
@@ -40,7 +40,7 @@ impl AuthRepository {
                 client_id: settings.oauth2_client_id.clone(),
                 client_secret: settings.oauth2_client_secret.clone(),
                 grant_type: String::from("authorization_code"),
-                code: code.clone(),
+                code: String::from(code),
                 redirect_uri: format!(
                     "{}://{}/api/auth/callback",
                     conn_info.scheme(),

@@ -1,21 +1,19 @@
 <template>
   <div id="app">
     <MenuBar v-bind:user="user"/>
-    <div class="container-lg">
-      <CommandList v-if="user !== null"/>
-    </div>
+    <CommandEditor v-bind:user="user"/>
   </div>
 </template>
 
 <script>
 import MenuBar from "@/components/MenuBar";
-import CommandList from "@/components/CommandList";
+import CommandEditor from "@/components/CommandEditor";
 
 export default {
   name: 'App',
   components: {
     MenuBar,
-    CommandList
+    CommandEditor
   },
   data() {
     return {
@@ -29,7 +27,20 @@ export default {
     fetchUser() {
       fetch('/api/user/current')
           .then(response => response.json())
-          .then(json => this.user = json);
+          .then(user => {
+            if (user !== null) {
+              this.fetchServers().then(servers => {
+                user.servers = servers;
+                this.user = user;
+              });
+            } else {
+              this.user = user;
+            }
+          });
+    },
+    fetchServers() {
+      return fetch('/api/servers/in_common')
+          .then(response => response.json());
     }
   }
 }

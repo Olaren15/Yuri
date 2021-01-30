@@ -5,6 +5,7 @@ use common::repositories::settings_repository::SettingsRepository;
 
 use crate::message_handler::MessageHandler;
 
+mod built_in_commands;
 mod message_handler;
 mod reply;
 

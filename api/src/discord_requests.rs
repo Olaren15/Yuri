@@ -10,7 +10,7 @@ impl DiscordRequest {
     pub const CDN_BASE_URI: &'static str = "https://cdn.discordapp.com";
 
     pub async fn get<T: DeserializeOwned>(path: &str, auth: &AuthSession) -> Option<T> {
-        Client::new()
+        match Client::new()
             .get(format!("{}{}", Self::API_BASE_URI, path))
             .header(
                 header::AUTHORIZATION,
@@ -18,9 +18,18 @@ impl DiscordRequest {
             )
             .send()
             .await
-            .ok()?
-            .json::<T>()
-            .await
-            .ok()
+        {
+            Ok(mut request) => match request.json::<T>().await {
+                Ok(data) => Some(data),
+                Err(e) => {
+                    println!("Failed to parse json: {}", e);
+                    None
+                }
+            },
+            Err(e) => {
+                println!("Failed to contact discord servers: {}", e);
+                None
+            }
+        }
     }
 }

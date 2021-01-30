@@ -15,7 +15,7 @@ async fn all(connection: Data<DbConnection>) -> impl Responder {
     let commands = CommandRepository::new(&connection)
         .get_all_commands()
         .await
-        .unwrap_or(vec![]);
+        .unwrap_or_default();
 
     Json(commands)
 }

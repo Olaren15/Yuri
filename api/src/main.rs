@@ -1,9 +1,9 @@
 use actix_session::CookieSession;
-use actix_web::{web, web::Data, App, HttpServer};
+use actix_web::{cookie::SameSite, web, web::Data, App, HttpServer};
 use rand::RngCore;
 
 use common::db_connection::DbConnection;
-use scopes::{auth, commands, user};
+use scopes::{auth, commands, servers, user};
 
 mod discord_requests;
 mod scopes;
@@ -17,18 +17,24 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
-            .wrap(CookieSession::private(&seed).secure(false))
+            .wrap(
+                CookieSession::private(&seed)
+                    .same_site(SameSite::Strict)
+                    .path("/api")
+                    .secure(false),
+            )
             .app_data(db_connection.clone())
             .service(
                 web::scope("/api")
                     .configure(auth::controller::register)
                     .configure(user::controller::register)
-                    .configure(commands::controller::register),
+                    .configure(commands::controller::register)
+                    .configure(servers::controller::register),
             )
     })
     .bind("127.0.0.1:6969")?
     // keep alive for one day
-    .keep_alive(1440)
+    .keep_alive(86400)
     .run()
     .await
 }

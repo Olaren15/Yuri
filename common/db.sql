@@ -25,13 +25,13 @@ CREATE TABLE commands (
 );
 
 CREATE TABLE guilds (
-	id int NOT NULL,
+	id bigint UNSIGNED NOT NULL,
 	PRIMARY KEY (id)
 );
 
 CREATE TABLE command_guild (
-	command_id int NOT NULL,
-	guild_id   int NOT NULL,
+	command_id int             NOT NULL,
+	guild_id   bigint UNSIGNED NOT NULL,
 	FOREIGN KEY (command_id) REFERENCES commands (id),
 	FOREIGN KEY (guild_id) REFERENCES guilds (id)
 );

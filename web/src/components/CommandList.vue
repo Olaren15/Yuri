@@ -1,16 +1,16 @@
 <template>
   <div class="row gap-3 mt-5">
-    <Command v-for="command in commands" :key="command.id" class="col-12 col-md-4" v-bind:command="command"/>
+    <CommandCard v-for="command in commands" :key="command.id" class="col-12 col-md-4" v-bind:command="command"/>
   </div>
 </template>
 
 <script>
-import Command from "@/components/Command";
+import CommandCard from "@/components/CommandCard";
 
 export default {
   name: "CommandList",
   components: {
-    Command
+    CommandCard
   },
   data() {
     return {

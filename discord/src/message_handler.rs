@@ -8,6 +8,7 @@ use serenity::{
 use common::db_connection::DbConnection;
 use common::{models::settings::Settings, repositories::command_repository::CommandRepository};
 
+use crate::built_in_commands::BuiltInCommands;
 use crate::reply::Reply;
 
 pub struct MessageHandler {
@@ -16,34 +17,12 @@ pub struct MessageHandler {
 }
 
 impl MessageHandler {
-    fn extract_command_name(message_text: &str) -> &str {
+    pub fn extract_command_name(message_text: &str) -> &str {
         if let Some(first_space_index) = message_text.find(' ') {
             &message_text[1..first_space_index]
         } else {
             &message_text[1..]
         }
-    }
-
-    async fn handle_built_in_commands(&self, ctx: &Context, msg: &Message) -> bool {
-        if msg.content[1..].starts_with("help") {
-            let command_text = if let Ok(commands) = CommandRepository::new(&self.connection)
-                .get_all_commands()
-                .await
-            {
-                commands
-                    .iter()
-                    .map(|command| format!("{}\n", command.name))
-                    .collect()
-            } else {
-                String::from("")
-            };
-
-            Reply::from_str(msg, command_text.as_str()).send(ctx).await;
-
-            return true;
-        }
-
-        false
     }
 
     async fn handle_dynamic_commands(&self, ctx: &Context, msg: &Message) -> bool {
@@ -68,7 +47,7 @@ impl EventHandler for MessageHandler {
         if msg
             .content
             .starts_with(self.settings.command_prefix.as_str())
-            && !self.handle_built_in_commands(&ctx, &msg).await
+            && !BuiltInCommands::dispatch(&self.connection, &ctx, &msg).await
             && !self.handle_dynamic_commands(&ctx, &msg).await
         {
             Reply::from_str(

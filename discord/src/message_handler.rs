@@ -71,13 +71,23 @@ impl EventHandler for MessageHandler {
                 if let Ok(app_info) = ctx.http.get_current_application_info().await {
                     if msg.author.id == app_info.id {
                         // we know that the message is sent from yuri
+                        if let Some(reaction_user_id) = reaction.user_id {
+                            if reaction_user_id != app_info.id {
+                                // we know that the reaction is not from yuri
 
-                        if let Some(description) = &msg.embeds[0].description {
-                            if description.contains("Do you accept?") {
-                                if BuiltInCommands::accept(&self.connection, &ctx, &msg, &reaction)
-                                    .await
-                                {
-                                    msg.delete(ctx).await.ok();
+                                if let Some(description) = &msg.embeds[0].description {
+                                    if description.contains("Do you accept?") {
+                                        if BuiltInCommands::accept(
+                                            &self.connection,
+                                            &ctx,
+                                            &msg,
+                                            &reaction,
+                                        )
+                                        .await
+                                        {
+                                            msg.delete(ctx).await.ok();
+                                        }
+                                    }
                                 }
                             }
                         }

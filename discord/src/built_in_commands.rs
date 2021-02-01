@@ -49,7 +49,12 @@ Strikethrough commands are unavailable because they require to be in an nsfw cha
                         e.field(
                             "`offer`",
                             "Offer a command to someone before touching them",
-                            true,
+                            false,
+                        );
+                        e.field(
+                            "`register`",
+                            "Register this server for use with the web interface",
+                            false,
                         );
 
                         e.fields(commands.into_iter().map(|command| {
@@ -110,7 +115,7 @@ Strikethrough commands are unavailable because they require to be in an nsfw cha
                     name: String::from(""),        // dummy name
                     description: String::from(""), // dummy description
                     everyone_text: String::from(
-                        "Offering to everyone is not supported at the moment.",
+                        "<@_s> is offering `hug` to everyone!\n\nDo you accept?",
                     ),
                     nobody_text: format!(
                         "mention someone to offer them `{}`",
@@ -163,80 +168,89 @@ Strikethrough commands are unavailable because they require to be in an nsfw cha
                         let sender_id =
                             &text[sender_begin_index..sender_begin_index + sender_length];
 
-                        if let Some(receiver_begin_index) = text[sender_begin_index..].find("<@") {
-                            let receiver_begin_index =
-                                receiver_begin_index + sender_begin_index + 2;
-                            if let Some(receiver_length) = text[receiver_begin_index..].find(">") {
-                                let receiver_id = &text
-                                    [receiver_begin_index..receiver_begin_index + receiver_length];
-                                // sender & receiver parsed
+                        if let Some(reaction_user_id) = reaction.user_id {
+                            let receiver_id = if text.contains("everyone") {
+                                reaction_user_id.to_string()
+                            } else {
+                                let mut receiver_id = String::new();
 
-                                if let Some(reaction_user_id) = reaction.user_id {
-                                    if receiver_id.parse::<u64>().unwrap_or_default()
-                                        == *reaction_user_id.as_u64()
+                                if let Some(receiver_begin_index) =
+                                    text[sender_begin_index..].find("<@")
+                                {
+                                    let receiver_begin_index =
+                                        receiver_begin_index + sender_begin_index + 2;
+                                    if let Some(receiver_length) =
+                                        text[receiver_begin_index..].find(">")
                                     {
-                                        // person who reacted is the receiver
-                                        if emoji.contains("✅") {
-                                            // user accepts
+                                        receiver_id = text[receiver_begin_index
+                                            ..receiver_begin_index + receiver_length]
+                                            .to_string();
+                                    }
+                                }
 
-                                            if let Some(command_begin_index) = text.find('`') {
-                                                let command_begin_index = command_begin_index + 1;
+                                receiver_id
+                            };
 
-                                                if let Some(command_length) =
-                                                    &text[command_begin_index..].find('`')
+                            if receiver_id.parse::<u64>().unwrap_or_default()
+                                == *reaction_user_id.as_u64()
+                            {
+                                // person who reacted is the receiver
+                                if emoji.contains("✅") {
+                                    // user accepts
+
+                                    if let Some(command_begin_index) = text.find('`') {
+                                        let command_begin_index = command_begin_index + 1;
+
+                                        if let Some(command_length) =
+                                            &text[command_begin_index..].find('`')
+                                        {
+                                            let command_name = &text[command_begin_index
+                                                ..command_begin_index + command_length];
+
+                                            if let Ok(mut command) = CommandRepository::new(conn)
+                                                .get_command_from_name(command_name)
+                                                .await
+                                            {
+                                                if let Some(sender_index) =
+                                                    command.one_person_text.find("_s")
                                                 {
-                                                    let command_name = &text[command_begin_index
-                                                        ..command_begin_index + command_length];
-
-                                                    if let Ok(mut command) =
-                                                        CommandRepository::new(conn)
-                                                            .get_command_from_name(command_name)
-                                                            .await
-                                                    {
-                                                        if let Some(sender_index) =
-                                                            command.one_person_text.find("_s")
-                                                        {
-                                                            command.one_person_text.replace_range(
-                                                                sender_index..sender_index + 2,
-                                                                sender_id,
-                                                            );
-                                                        }
-
-                                                        if let Some(receiver_index) =
-                                                            command.one_person_text.find("_r")
-                                                        {
-                                                            command.one_person_text.replace_range(
-                                                                receiver_index..receiver_index + 2,
-                                                                receiver_id,
-                                                            );
-                                                        }
-
-                                                        Reply::from_command_offer(
-                                                            &command, &msg, &conn,
-                                                        )
-                                                        .await
-                                                        .send(ctx)
-                                                        .await;
-
-                                                        return true;
-                                                    }
+                                                    command.one_person_text.replace_range(
+                                                        sender_index..sender_index + 2,
+                                                        sender_id,
+                                                    );
                                                 }
-                                            }
-                                        } else if emoji.contains("❌") {
-                                            Reply::from_str(
-                                                &msg,
-                                                format!(
-                                                    "<@{}> refused <@{}>'s offer",
-                                                    receiver_id, sender_id
-                                                )
-                                                .as_str(),
-                                            )
-                                            .send(ctx)
-                                            .await;
 
-                                            return true;
+                                                if let Some(receiver_index) =
+                                                    command.one_person_text.find("_r")
+                                                {
+                                                    command.one_person_text.replace_range(
+                                                        receiver_index..receiver_index + 2,
+                                                        receiver_id.as_str(),
+                                                    );
+                                                }
+
+                                                Reply::from_command_offer(&command, &msg, &conn)
+                                                    .await
+                                                    .send(ctx)
+                                                    .await;
+
+                                                return !text.contains("everyone");
+                                            }
                                         }
                                     }
+                                } else if emoji.contains("❌") && !text.contains("everyone") {
+                                    Reply::from_str(
+                                        &msg,
+                                        format!(
+                                            "<@{}> refused <@{}>'s offer",
+                                            receiver_id, sender_id
+                                        )
+                                        .as_str(),
+                                    )
+                                    .send(ctx)
+                                    .await;
+
+                                    return true;
                                 }
                             }
                         }

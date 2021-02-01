@@ -40,7 +40,7 @@ impl GuildRepository {
                     Err(e) => Err(e.as_database_error().unwrap().to_string()),
                 }
             } else {
-                Err(String::from("This guild is already registered."))
+                Err(String::from("This server is already registered."))
             }
         } else {
             Err(String::from(

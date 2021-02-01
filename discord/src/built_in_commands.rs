@@ -114,9 +114,10 @@ Strikethrough commands are unavailable because they require to be in an nsfw cha
                     id: 0,                         // dummy id
                     name: String::from(""),        // dummy name
                     description: String::from(""), // dummy description
-                    everyone_text: String::from(
-                        "<@_s> is offering `hug` to everyone!\n\nDo you accept?",
-                    ),
+                    everyone_text: String::from(format!(
+                        "<@_s> is offering `{}` to everyone!\n\nDo you accept?",
+                        offered_command.name
+                    )),
                     nobody_text: format!(
                         "mention someone to offer them `{}`",
                         offered_command.name

@@ -93,6 +93,21 @@ impl Reply {
         }
     }
 
+    pub async fn from_command_offer(
+        command: &Command,
+        msg: &Message,
+        conn: &DbConnection,
+    ) -> Reply {
+        Reply {
+            message: msg.clone(),
+            message_text: command.one_person_text.clone(), // mentions already handled
+            link: ImageRepository::new(conn)
+                .get_random_link_from_command(&command)
+                .await
+                .ok(),
+        }
+    }
+
     pub fn from_str(msg: &Message, text: &str) -> Reply {
         Reply {
             message: msg.clone(),
@@ -101,7 +116,7 @@ impl Reply {
         }
     }
 
-    pub async fn send(&self, ctx: &Context) {
+    pub async fn send(&self, ctx: &Context) -> Message {
         self.message
             .channel_id
             .send_message(ctx, |m| {
@@ -114,9 +129,10 @@ impl Reply {
 
                     e
                 });
+
                 m
             })
             .await
-            .unwrap();
+            .unwrap()
     }
 }

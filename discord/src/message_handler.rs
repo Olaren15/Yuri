@@ -1,8 +1,10 @@
-use serenity::model::gateway::Activity;
 use serenity::{
     async_trait,
     client::{Context, EventHandler},
-    model::{channel::Message, gateway::Ready},
+    model::{
+        channel::{Message, Reaction},
+        gateway::{Activity, Ready},
+    },
 };
 
 use common::db_connection::DbConnection;
@@ -60,6 +62,28 @@ impl EventHandler for MessageHandler {
             )
             .send(&ctx)
             .await;
+        }
+    }
+
+    async fn reaction_add(&self, ctx: Context, reaction: Reaction) {
+        if let Ok(msg) = reaction.message(&ctx).await {
+            if !msg.embeds.is_empty() {
+                if let Ok(app_info) = ctx.http.get_current_application_info().await {
+                    if msg.author.id == app_info.id {
+                        // we know that the message is sent from yuri
+
+                        if let Some(description) = &msg.embeds[0].description {
+                            if description.contains("Do you accept?") {
+                                if BuiltInCommands::accept(&self.connection, &ctx, &msg, &reaction)
+                                    .await
+                                {
+                                    msg.delete(ctx).await.ok();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 

@@ -1,3 +1,5 @@
+use serenity::model::channel::ReactionType::Unicode;
+use serenity::model::channel::{Reaction, ReactionType};
 use serenity::utils::Color;
 use serenity::{client::Context, model::channel::Message};
 
@@ -17,7 +19,6 @@ impl BuiltInCommands {
             "help" => Self::help(conn, ctx, msg).await,
             "register" => Self::register(conn, ctx, msg).await,
             "offer" => Self::offer(conn, ctx, msg).await,
-            "accept" => Self::accept(conn, ctx, msg).await,
             _ => {
                 return false;
             }
@@ -37,27 +38,31 @@ impl BuiltInCommands {
             msg.channel_id
                 .send_message(ctx, |m| {
                     m.embed(|e| {
-                        e.description("Hello comrade! Here are your gay commands
+                        e.description(
+                            "Hello comrade! Here are your gay commands
 
-Strikethrough commands are unavailable because they require to be in an nsfw channel.");
+Strikethrough commands are unavailable because they require to be in an nsfw channel.",
+                        );
                         e.color(Color::MAGENTA);
 
                         e.field("`help`", "Show this help message", false);
-                        e.field("`offer`", "Offer a command to someone before touching them", true);
-                        e.field("`accept`", "Accept someone's offer.\nMust be used when replying to an offer message", true);
-
-                        e.fields(
-                            commands
-                                .into_iter()
-                                .map(|command| {
-                                    if command.is_nsfw && !channel_is_nsfw {
-                                        (format!("~~`{}`~~", command.name), command.description, false)
-                                    } else {
-                                        (format!("`{}`", command.name), command.description, false)
-                                    }
-                                }),
+                        e.field(
+                            "`offer`",
+                            "Offer a command to someone before touching them",
+                            true,
                         );
 
+                        e.fields(commands.into_iter().map(|command| {
+                            if command.is_nsfw && !channel_is_nsfw {
+                                (
+                                    format!("~~`{}`~~", command.name),
+                                    command.description,
+                                    false,
+                                )
+                            } else {
+                                (format!("`{}`", command.name), command.description, false)
+                            }
+                        }));
 
                         e
                     });
@@ -83,7 +88,7 @@ Strikethrough commands are unavailable because they require to be in an nsfw cha
             message = String::from("Sorry, I can't register DM channels.");
         }
 
-        Reply::from_str(msg, message.as_str()).send(ctx).await
+        Reply::from_str(msg, message.as_str()).send(ctx).await;
     }
 
     async fn offer(conn: &DbConnection, ctx: &Context, msg: &Message) {
@@ -101,8 +106,8 @@ Strikethrough commands are unavailable because they require to be in an nsfw cha
                 .await
             {
                 let command = Command {
-                    id: 0, // dummy id
-                    name: String::from(""), // dummy name
+                    id: 0,                         // dummy id
+                    name: String::from(""),        // dummy name
                     description: String::from(""), // dummy description
                     everyone_text: String::from(
                         "Offering to everyone is not supported at the moment.",
@@ -112,14 +117,23 @@ Strikethrough commands are unavailable because they require to be in an nsfw cha
                         offered_command.name
                     ),
                     one_person_text: format!(
-                        "Offering `{}` to <@_r> \n\nReply to this message with the `accept` command to accept",
+                        "<@_s> is offering `{}` to <@_r> \n\nDo you accept?",
                         offered_command.name
                     ),
                     is_nsfw: offered_command.is_nsfw,
                 };
 
                 for reply in Reply::from_command(&command, msg, conn).await {
-                    reply.send(ctx).await;
+                    let message = reply.send(ctx).await;
+                    message
+                        .react(ctx, ReactionType::Unicode(String::from("✅")))
+                        .await
+                        .ok();
+
+                    message
+                        .react(ctx, ReactionType::Unicode(String::from("❌")))
+                        .await
+                        .ok();
                 }
             } else {
                 Reply::from_str(msg, format!("command not found: {}", offer_name).as_str())
@@ -134,75 +148,96 @@ Strikethrough commands are unavailable because they require to be in an nsfw cha
     }
 
     // Code is ugly, but it works soooooo it's probably gonna stay like this
-    async fn accept(conn: &DbConnection, ctx: &Context, msg: &Message) {
-        if let Some(reference) = &msg.message_reference {
-            if let Some(message_id) = reference.message_id {
-                if let Ok(ref_message) = ctx
-                    .http
-                    .get_message(reference.channel_id.into(), message_id.into())
-                    .await
-                {
-                    if !ref_message.embeds.is_empty() {
-                        if let Some(text) = &ref_message.embeds[0].description {
-                            if text.contains(format!("<@{}>", msg.author.id).as_str()) {
-                                // extract data from message
-                                if let Some(command_start) = text.find('`') {
-                                    if let Some(command_length) =
-                                        text[command_start + 1..].find('`')
+    pub async fn accept(
+        conn: &DbConnection,
+        ctx: &Context,
+        msg: &Message,
+        reaction: &Reaction,
+    ) -> bool {
+        if let Unicode(emoji) = &reaction.emoji {
+            if let Some(text) = &msg.embeds[0].description {
+                // start of sender & receiver parsing
+                if let Some(sender_begin_index) = text.find("<@") {
+                    let sender_begin_index = sender_begin_index + 2;
+                    if let Some(sender_length) = &text[sender_begin_index..].find(">") {
+                        let sender_id =
+                            &text[sender_begin_index..sender_begin_index + sender_length];
+
+                        if let Some(receiver_begin_index) = text[sender_begin_index..].find("<@") {
+                            let receiver_begin_index =
+                                receiver_begin_index + sender_begin_index + 2;
+                            if let Some(receiver_length) = text[receiver_begin_index..].find(">") {
+                                let receiver_id = &text
+                                    [receiver_begin_index..receiver_begin_index + receiver_length];
+                                // sender & receiver parsed
+
+                                if let Some(reaction_user_id) = reaction.user_id {
+                                    if receiver_id.parse::<u64>().unwrap_or_default()
+                                        == *reaction_user_id.as_u64()
                                     {
-                                        let command = &text
-                                            [command_start + 1..command_start + command_length + 1];
+                                        // person who reacted is the receiver
+                                        if emoji.contains("✅") {
+                                            // user accepts
 
-                                        if let Some(sender_start) = text.find("<@") {
-                                            if let Some(sender_length) =
-                                                text[sender_start + 2..].find('>')
-                                            {
-                                                let sender = &text[sender_start + 2
-                                                    ..sender_start + 2 + sender_length];
+                                            if let Some(command_begin_index) = text.find('`') {
+                                                let command_begin_index = command_begin_index + 1;
 
-                                                // build the message
-                                                if let Ok(mut command) =
-                                                    CommandRepository::new(conn)
-                                                        .get_command_from_name(command)
-                                                        .await
+                                                if let Some(command_length) =
+                                                    &text[command_begin_index..].find('`')
                                                 {
-                                                    // manually replace the sender and the receiver
-                                                    if let Some(sender_index) =
-                                                        command.one_person_text.find("_s")
-                                                    {
-                                                        command.one_person_text.replace_range(
-                                                            sender_index..sender_index + 2,
-                                                            sender,
-                                                        );
-                                                    }
+                                                    let command_name = &text[command_begin_index
+                                                        ..command_begin_index + command_length];
 
-                                                    if let Some(receiver_index) =
-                                                        command.one_person_text.find("_r")
-                                                    {
-                                                        command.one_person_text.replace_range(
-                                                            receiver_index..receiver_index + 2,
-                                                            msg.author.id.to_string().as_str(),
-                                                        );
-                                                    }
-
-                                                    for reply in
-                                                        Reply::from_command(&command, msg, conn)
+                                                    if let Ok(mut command) =
+                                                        CommandRepository::new(conn)
+                                                            .get_command_from_name(command_name)
                                                             .await
                                                     {
-                                                        reply.send(ctx).await;
-                                                    }
+                                                        if let Some(sender_index) =
+                                                            command.one_person_text.find("_s")
+                                                        {
+                                                            command.one_person_text.replace_range(
+                                                                sender_index..sender_index + 2,
+                                                                sender_id,
+                                                            );
+                                                        }
 
-                                                    return;
+                                                        if let Some(receiver_index) =
+                                                            command.one_person_text.find("_r")
+                                                        {
+                                                            command.one_person_text.replace_range(
+                                                                receiver_index..receiver_index + 2,
+                                                                receiver_id,
+                                                            );
+                                                        }
+
+                                                        Reply::from_command_offer(
+                                                            &command, &msg, &conn,
+                                                        )
+                                                        .await
+                                                        .send(ctx)
+                                                        .await;
+
+                                                        return true;
+                                                    }
                                                 }
                                             }
+                                        } else if emoji.contains("❌") {
+                                            Reply::from_str(
+                                                &msg,
+                                                format!(
+                                                    "<@{}> refused <@{}>'s offer",
+                                                    receiver_id, sender_id
+                                                )
+                                                .as_str(),
+                                            )
+                                            .send(ctx)
+                                            .await;
+
+                                            return true;
                                         }
                                     }
                                 }
-                            } else {
-                                Reply::from_str(msg, "This offer isn't for you!")
-                                    .send(ctx)
-                                    .await;
-                                return;
                             }
                         }
                     }
@@ -210,8 +245,6 @@ Strikethrough commands are unavailable because they require to be in an nsfw cha
             }
         }
 
-        Reply::from_str(msg, "Offer not found.\n\nReply to an offer to accept it")
-            .send(ctx)
-            .await;
+        false
     }
 }

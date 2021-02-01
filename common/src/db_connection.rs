@@ -10,7 +10,7 @@ pub struct DbConnection {
 impl DbConnection {
     pub async fn new() -> DbConnection {
         let conn_string =
-            env::var("yuri-db").expect("Failed to retrieve connection string from environment");
+            env::var("yuri_db").expect("Failed to retrieve connection string from environment");
 
         DbConnection {
             pool: MySqlPool::connect(conn_string.as_str())

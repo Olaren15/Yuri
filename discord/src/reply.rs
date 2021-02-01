@@ -15,7 +15,11 @@ pub struct Reply {
 }
 
 impl Reply {
-    fn format_user_mentions(raw_message: &str, sender: &User, receiver: Option<&User>) -> String {
+    pub fn format_user_mentions(
+        raw_message: &str,
+        sender: &User,
+        receiver: Option<&User>,
+    ) -> String {
         let mut formatted_message = raw_message.to_string();
 
         if let Some(sender_index) = formatted_message.find("_s") {

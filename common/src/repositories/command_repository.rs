@@ -30,6 +30,7 @@ impl CommandRepository {
             "
                 SELECT *
                 FROM commands
+                ORDER BY name
                 ",
         )
         .fetch_all(&self.connection.pool)

@@ -64,7 +64,10 @@ impl EventHandler for MessageHandler {
     }
 
     async fn ready(&self, ctx: Context, ready: Ready) {
-        ctx.set_activity(Activity::playing("Being cute")).await;
+        ctx.set_activity(Activity::playing(
+            format!("{}help", self.settings.command_prefix).as_str(),
+        ))
+        .await;
         println!("{} is connected!", ready.user.name);
     }
 }

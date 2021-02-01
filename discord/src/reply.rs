@@ -1,3 +1,4 @@
+use futures::executor;
 use serenity::client::Context;
 use serenity::model::channel::Message;
 use serenity::model::user::User;
@@ -66,24 +67,25 @@ impl Reply {
                     .ok(),
             }]
         } else {
-            let mut replies = vec![];
-
-            for mention in msg.mentions.clone() {
-                replies.push(Reply {
-                    message: msg.clone(),
-                    message_text: Reply::format_user_mentions(
-                        command.one_person_text.as_str(),
-                        &msg.author,
-                        Some(&mention),
-                    ),
-                    link: ImageRepository::new(connection)
-                        .get_random_link_from_command(&command)
-                        .await
-                        .ok(),
-                });
-            }
-
-            replies
+            msg.mentions
+                .iter()
+                .map(|mention| {
+                    executor::block_on(async {
+                        Reply {
+                            message: msg.clone(),
+                            message_text: Reply::format_user_mentions(
+                                command.one_person_text.as_str(),
+                                &msg.author,
+                                Some(&mention),
+                            ),
+                            link: ImageRepository::new(connection)
+                                .get_random_link_from_command(&command)
+                                .await
+                                .ok(),
+                        }
+                    })
+                })
+                .collect()
         }
     }
 

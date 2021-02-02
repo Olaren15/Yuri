@@ -8,6 +8,8 @@ use serenity::{
 };
 
 use common::db_connection::DbConnection;
+use common::models::command::Command;
+use common::repositories::image_repository::ImageRepository;
 use common::{models::settings::Settings, repositories::command_repository::CommandRepository};
 
 use crate::built_in_commands::BuiltInCommands;
@@ -32,14 +34,45 @@ impl MessageHandler {
             .get_command_from_name(MessageHandler::extract_command_name(msg.content.as_str()))
             .await
         {
-            for reply in Reply::from_command(&command, &msg, &self.connection).await {
-                reply.send(&ctx).await;
+            if !Self::check_nsfw_and_bonk(&command, ctx, msg, &self.connection).await {
+                for reply in Reply::from_command(&command, &msg, &self.connection).await {
+                    reply.send(&ctx).await;
+                }
             }
 
             return true;
         }
 
         false
+    }
+
+    pub async fn check_nsfw_and_bonk(
+        cmd: &Command,
+        ctx: &Context,
+        msg: &Message,
+        conn: &DbConnection,
+    ) -> bool {
+        let should_bonk = if cmd.is_nsfw {
+            if let Ok(channel) = msg.channel_id.to_channel(ctx).await {
+                !channel.is_nsfw()
+            } else {
+                false
+            }
+        } else {
+            false
+        };
+
+        if should_bonk {
+            let mut reply = Reply::from_str(msg, "This is not an nsfw channel >:(");
+            reply.link = ImageRepository::new(conn)
+                .get_random_link_from_command_name("bonk")
+                .await
+                .ok();
+
+            reply.send(ctx).await;
+        }
+
+        should_bonk
     }
 }
 

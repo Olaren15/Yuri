@@ -31,4 +31,25 @@ impl ImageRepository {
 
         Ok(image.url)
     }
+
+    pub async fn get_random_link_from_command_name(
+        &self,
+        name: &str,
+    ) -> Result<String, sqlx::Error> {
+        let image = sqlx::query_as::<_, Image>(
+            "
+                SELECT *
+                FROM images
+                INNER JOIN commands
+                    ON commands.id = command_id
+                WHERE commands.name = ?
+                ORDER BY RAND()  
+                ",
+        )
+        .bind(name)
+        .fetch_one(&self.connection.pool)
+        .await?;
+
+        Ok(image.url)
+    }
 }

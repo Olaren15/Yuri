@@ -110,36 +110,38 @@ Strikethrough commands are unavailable because they require to be in an nsfw cha
                 .get_command_from_name(offer_name)
                 .await
             {
-                let command = Command {
-                    id: 0,                         // dummy id
-                    name: String::from(""),        // dummy name
-                    description: String::from(""), // dummy description
-                    everyone_text: String::from(format!(
-                        "<@_s> is offering `{}` to everyone!\n\nDo you accept?",
-                        offered_command.name
-                    )),
-                    nobody_text: format!(
-                        "mention someone to offer them `{}`",
-                        offered_command.name
-                    ),
-                    one_person_text: format!(
-                        "<@_s> is offering `{}` to <@_r> \n\nDo you accept?",
-                        offered_command.name
-                    ),
-                    is_nsfw: offered_command.is_nsfw,
-                };
+                if !MessageHandler::check_nsfw_and_bonk(&offered_command, ctx, msg, conn).await {
+                    let command = Command {
+                        id: 0,                         // dummy id
+                        name: String::from(""),        // dummy name
+                        description: String::from(""), // dummy description
+                        everyone_text: String::from(format!(
+                            "<@_s> is offering `{}` to everyone!\n\nDo you accept?",
+                            offered_command.name
+                        )),
+                        nobody_text: format!(
+                            "Mention someone to offer them `{}`",
+                            offered_command.name
+                        ),
+                        one_person_text: format!(
+                            "<@_s> is offering `{}` to <@_r> \n\nDo you accept?",
+                            offered_command.name
+                        ),
+                        is_nsfw: offered_command.is_nsfw,
+                    };
 
-                for reply in Reply::from_command(&command, msg, conn).await {
-                    let message = reply.send(ctx).await;
-                    message
-                        .react(ctx, ReactionType::Unicode(String::from("✅")))
-                        .await
-                        .ok();
+                    for reply in Reply::from_command(&command, msg, conn).await {
+                        let message = reply.send(ctx).await;
+                        message
+                            .react(ctx, ReactionType::Unicode(String::from("✅")))
+                            .await
+                            .ok();
 
-                    message
-                        .react(ctx, ReactionType::Unicode(String::from("❌")))
-                        .await
-                        .ok();
+                        message
+                            .react(ctx, ReactionType::Unicode(String::from("❌")))
+                            .await
+                            .ok();
+                    }
                 }
             } else {
                 Reply::from_str(msg, format!("command not found: {}", offer_name).as_str())

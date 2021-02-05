@@ -1,13 +1,17 @@
+use std::sync::Mutex;
+
 use actix_session::Session;
 use actix_web::web::Json;
 use actix_web::{
     get, web,
     web::{Data, ServiceConfig},
-    Responder,
+    HttpRequest, Responder,
 };
+use serenity::http::Http;
 
-use common::db_connection::DbConnection;
+use common::db_conntext::DbContext;
 
+use crate::discord_client_from_request::FromSession;
 use crate::scopes::servers::repository::ServerRepository;
 
 pub fn register(cfg: &mut ServiceConfig) {
@@ -15,14 +19,20 @@ pub fn register(cfg: &mut ServiceConfig) {
 }
 
 #[get("/in_common")]
-async fn in_common(connection: Data<DbConnection>, session: Session) -> impl Responder {
-    let common_servers = if let Some(auth) = session.get("auth").unwrap_or(None) {
-        ServerRepository::get_servers_in_common_with_yuri(&auth, &connection)
-            .await
-            .unwrap_or_default()
-    } else {
-        vec![]
-    };
+async fn in_common(
+    ctx: Data<DbContext>,
+    client: Data<Mutex<Http>>,
+    session: Session,
+    req: HttpRequest,
+) -> impl Responder {
+    let mut client = client.lock().unwrap();
+    client
+        .set_token_from_session(&session, &ctx, &req.connection_info())
+        .unwrap();
+
+    let common_servers = ServerRepository::get_servers_in_common_with_yuri(&client, &ctx)
+        .await
+        .unwrap_or_default();
 
     Json(common_servers)
 }

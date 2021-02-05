@@ -1,13 +1,13 @@
 use sqlx::Row;
 
-use crate::db_connection::DbConnection;
+use crate::db_conntext::DbContext;
 
 pub struct GuildRepository {
-    connection: DbConnection,
+    connection: DbContext,
 }
 
 impl GuildRepository {
-    pub fn new(conn: &DbConnection) -> GuildRepository {
+    pub fn new(conn: &DbContext) -> GuildRepository {
         GuildRepository {
             connection: conn.clone(),
         }

@@ -1,13 +1,11 @@
 <template>
-  <div>
+  <div class="container-lg mt-3">
     <label>
-      <select id="servers">
+      <select id="servers" v-model="selectedGuildId" class="form-control m-0">
         <!-- will be filled when data is fetched -->
       </select>
     </label>
-    <div class="container-lg">
-      <CommandList v-if="user !== null"/>
-    </div>
+    <CommandList v-if="user !== null" v-bind:guild-id="selectedGuildId"/>
   </div>
 </template>
 
@@ -20,7 +18,9 @@ export default {
     CommandList
   },
   data() {
-    return {};
+    return {
+      selectedGuildId: 0,
+    };
   },
   watch: {
     user(newUser) {
@@ -39,6 +39,11 @@ export default {
           option.value = newUser.servers[i].id;
 
           select.add(option);
+
+          if (i === 0) {
+            // automatically select first option
+            select.value = newUser.servers[i].id;
+          }
         }
       }
     }
@@ -48,7 +53,7 @@ export default {
       required: true,
       default: null,
     }
-  }
+  },
 }
 </script>
 

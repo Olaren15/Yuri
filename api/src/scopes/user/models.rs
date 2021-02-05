@@ -20,6 +20,6 @@ pub struct DiscordUser {
 #[derive(Serialize)]
 pub struct YuriUser {
     pub username: String,
-    pub discriminator: i32,
+    pub discriminator: u16,
     pub icon_url: String,
 }

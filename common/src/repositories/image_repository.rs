@@ -1,13 +1,13 @@
-use crate::db_connection::DbConnection;
+use crate::db_conntext::DbContext;
 use crate::models::command::Command;
 use crate::models::image::Image;
 
 pub struct ImageRepository {
-    connection: DbConnection,
+    connection: DbContext,
 }
 
 impl ImageRepository {
-    pub fn new(connection: &DbConnection) -> ImageRepository {
+    pub fn new(connection: &DbContext) -> ImageRepository {
         ImageRepository {
             connection: connection.clone(),
         }

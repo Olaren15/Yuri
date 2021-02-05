@@ -1,10 +1,17 @@
+use std::sync::Mutex;
+
 use actix_session::Session;
+use actix_web::web::Data;
 use actix_web::{
     get, web,
     web::{Json, ServiceConfig},
-    Responder,
+    HttpRequest, Responder,
 };
+use serenity::http::Http;
 
+use common::db_conntext::DbContext;
+
+use crate::discord_client_from_request::FromSession;
 use crate::scopes::user::repository::UserRepository;
 
 pub fn register(cfg: &mut ServiceConfig) {
@@ -12,9 +19,18 @@ pub fn register(cfg: &mut ServiceConfig) {
 }
 
 #[get("/current")]
-async fn current(session: Session) -> impl Responder {
-    let user = if let Some(auth) = session.get("auth").unwrap() {
-        UserRepository::get_yuri_user(&auth).await
+async fn current(
+    ctx: Data<DbContext>,
+    client: Data<Mutex<Http>>,
+    session: Session,
+    req: HttpRequest,
+) -> impl Responder {
+    let mut client = client.lock().unwrap();
+    let user = if client
+        .set_token_from_session(&session, &ctx, &req.connection_info())
+        .is_ok()
+    {
+        UserRepository::get_yuri_user(&client).await
     } else {
         None
     };

@@ -7,7 +7,7 @@ use serenity::{
     },
 };
 
-use common::db_connection::DbConnection;
+use common::db_conntext::DbContext;
 use common::models::command::Command;
 use common::repositories::image_repository::ImageRepository;
 use common::{models::settings::Settings, repositories::command_repository::CommandRepository};
@@ -17,7 +17,7 @@ use crate::reply::Reply;
 
 pub struct MessageHandler {
     pub settings: Settings,
-    pub connection: DbConnection,
+    pub connection: DbContext,
 }
 
 impl MessageHandler {
@@ -30,17 +30,22 @@ impl MessageHandler {
     }
 
     async fn handle_dynamic_commands(&self, ctx: &Context, msg: &Message) -> bool {
-        if let Ok(command) = CommandRepository::new(&self.connection)
-            .get_command_from_name(MessageHandler::extract_command_name(msg.content.as_str()))
-            .await
-        {
-            if !Self::check_nsfw_and_bonk(&command, ctx, msg, &self.connection).await {
-                for reply in Reply::from_command(&command, &msg, &self.connection).await {
-                    reply.send(&ctx).await;
+        if let Some(guild_id) = msg.guild_id {
+            if let Ok(command) = CommandRepository::new(&self.connection)
+                .get_command_from_name_and_guild(
+                    MessageHandler::extract_command_name(msg.content.as_str()),
+                    guild_id.into(),
+                )
+                .await
+            {
+                if !Self::check_nsfw_and_bonk(&command, ctx, msg, &self.connection).await {
+                    for reply in Reply::from_command(&command, &msg, &self.connection).await {
+                        reply.send(&ctx).await;
+                    }
                 }
-            }
 
-            return true;
+                return true;
+            }
         }
 
         false
@@ -50,7 +55,7 @@ impl MessageHandler {
         cmd: &Command,
         ctx: &Context,
         msg: &Message,
-        conn: &DbConnection,
+        conn: &DbContext,
     ) -> bool {
         let should_bonk = if cmd.is_nsfw {
             if let Ok(channel) = msg.channel_id.to_channel(ctx).await {
@@ -109,17 +114,16 @@ impl EventHandler for MessageHandler {
                                 // we know that the reaction is not from yuri
 
                                 if let Some(description) = &msg.embeds[0].description {
-                                    if description.contains("Do you accept?") {
-                                        if BuiltInCommands::accept(
+                                    if description.contains("Do you accept?")
+                                        && BuiltInCommands::accept(
                                             &self.connection,
                                             &ctx,
                                             &msg,
                                             &reaction,
                                         )
                                         .await
-                                        {
-                                            msg.delete(ctx).await.ok();
-                                        }
+                                    {
+                                        msg.delete(ctx).await.ok();
                                     }
                                 }
                             }

@@ -1,6 +1,6 @@
 use serenity::prelude::*;
 
-use common::db_connection::DbConnection;
+use common::db_conntext::DbContext;
 use common::repositories::settings_repository::SettingsRepository;
 
 use crate::message_handler::MessageHandler;
@@ -11,7 +11,7 @@ mod reply;
 
 #[tokio::main]
 async fn main() -> serenity::Result<()> {
-    let connection = DbConnection::new().await;
+    let connection = DbContext::new().await;
 
     let settings = SettingsRepository::new(&connection)
         .get_highest_weight_settings()

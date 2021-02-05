@@ -1,11 +1,11 @@
-use crate::{db_connection::DbConnection, models::settings::Settings};
+use crate::{db_conntext::DbContext, models::settings::Settings};
 
 pub struct SettingsRepository {
-    connection: DbConnection,
+    connection: DbContext,
 }
 
 impl SettingsRepository {
-    pub fn new(connection: &DbConnection) -> SettingsRepository {
+    pub fn new(connection: &DbContext) -> SettingsRepository {
         SettingsRepository {
             connection: connection.clone(),
         }

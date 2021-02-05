@@ -1,6 +1,3 @@
-use std::ops::Add;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
-
 use actix_session::Session;
 use actix_web::{
     get,
@@ -10,7 +7,7 @@ use actix_web::{
     HttpRequest, HttpResponse, Responder,
 };
 
-use common::{db_connection::DbConnection, repositories::settings_repository::SettingsRepository};
+use common::{db_conntext::DbContext, repositories::settings_repository::SettingsRepository};
 
 use crate::scopes::auth::{
     models::{AuthSession, CallbackData},
@@ -27,7 +24,7 @@ pub fn register(cfg: &mut ServiceConfig) {
 }
 
 #[get("/login")]
-async fn authorize(connection: Data<DbConnection>, req: HttpRequest) -> impl Responder {
+async fn authorize(connection: Data<DbContext>, req: HttpRequest) -> impl Responder {
     if let Ok(settings) = SettingsRepository::new(&connection)
         .get_highest_weight_settings()
         .await
@@ -46,7 +43,7 @@ async fn authorize(connection: Data<DbConnection>, req: HttpRequest) -> impl Res
 #[get("/callback")]
 async fn callback(
     callback: Query<CallbackData>,
-    connection: Data<DbConnection>,
+    connection: Data<DbContext>,
     session: Session,
     req: HttpRequest,
 ) -> impl Responder {
@@ -63,18 +60,9 @@ async fn callback(
             session
                 .set(
                     "auth",
-                    AuthSession {
-                        access_token: token_response.access_token,
-                        refresh_token: token_response.refresh_token,
-                        expire_time: SystemTime::now()
-                            .duration_since(UNIX_EPOCH)
-                            .unwrap()
-                            .add(Duration::from_secs(token_response.expires_in as u64))
-                            .as_secs(),
-                    },
+                    AuthSession::from_access_token_response(token_response),
                 )
-                .ok()
-                .unwrap();
+                .ok();
 
             return HttpResponse::SeeOther()
                 .header(header::LOCATION, "/")

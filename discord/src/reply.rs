@@ -4,7 +4,7 @@ use serenity::model::channel::Message;
 use serenity::model::user::User;
 use serenity::utils::Color;
 
-use common::db_connection::DbConnection;
+use common::db_conntext::DbContext;
 use common::models::command::Command;
 use common::repositories::image_repository::ImageRepository;
 
@@ -42,7 +42,7 @@ impl Reply {
     pub async fn from_command(
         command: &Command,
         msg: &Message,
-        connection: &DbConnection,
+        connection: &DbContext,
     ) -> Vec<Reply> {
         if msg.content.contains("everyone") {
             vec![Reply {
@@ -93,11 +93,7 @@ impl Reply {
         }
     }
 
-    pub async fn from_command_offer(
-        command: &Command,
-        msg: &Message,
-        conn: &DbConnection,
-    ) -> Reply {
+    pub async fn from_command_offer(command: &Command, msg: &Message, conn: &DbContext) -> Reply {
         Reply {
             message: msg.clone(),
             message_text: command.one_person_text.clone(), // mentions already handled

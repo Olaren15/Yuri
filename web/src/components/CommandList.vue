@@ -17,14 +17,26 @@ export default {
       commands: [],
     }
   },
+  props: {
+    guildId: {
+      required: true,
+      default: 0,
+      type: Number,
+    }
+  },
   created() {
     this.fetchCommands();
   },
   methods: {
     fetchCommands() {
-      fetch('/api/commands/all')
+      fetch(`/api/commands/for_guild/${this.guildId}`)
           .then(response => response.json())
           .then(json => this.commands = json);
+    }
+  },
+  watch: {
+    guildId() {
+      this.fetchCommands();
     }
   }
 }

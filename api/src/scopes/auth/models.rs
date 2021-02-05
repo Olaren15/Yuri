@@ -1,3 +1,6 @@
+use std::ops::Add;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
@@ -11,6 +14,16 @@ pub struct AccessTokenExchange {
     pub client_secret: String,
     pub grant_type: String,
     pub code: String,
+    pub redirect_uri: String,
+    pub scope: String,
+}
+
+#[derive(Serialize)]
+pub struct AccessTokenRefresh {
+    pub client_id: String,
+    pub client_secret: String,
+    pub grant_type: String,
+    pub refresh_token: String,
     pub redirect_uri: String,
     pub scope: String,
 }
@@ -34,4 +47,18 @@ pub struct AuthSession {
     pub access_token: String,
     pub refresh_token: String,
     pub expire_time: u64,
+}
+
+impl AuthSession {
+    pub fn from_access_token_response(response: AccessTokenResponse) -> AuthSession {
+        AuthSession {
+            access_token: response.access_token,
+            refresh_token: response.refresh_token,
+            expire_time: SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .add(Duration::from_secs(response.expires_in as u64))
+                .as_secs(),
+        }
+    }
 }

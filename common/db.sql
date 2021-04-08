@@ -1,6 +1,6 @@
-DROP DATABASE IF EXISTS yuri_test;
-CREATE DATABASE IF NOT EXISTS yuri_test DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
-USE yuri_test;
+DROP DATABASE IF EXISTS yuri;
+CREATE DATABASE IF NOT EXISTS yuri DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+USE yuri;
 
 CREATE TABLE settings (
 	id                   int          NOT NULL AUTO_INCREMENT,

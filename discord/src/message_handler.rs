@@ -87,19 +87,26 @@ impl EventHandler for MessageHandler {
         if msg
             .content
             .starts_with(self.settings.command_prefix.as_str())
-            && !BuiltInCommands::dispatch(&self.connection, &ctx, &msg).await
-            && !self.handle_dynamic_commands(&ctx, &msg).await
         {
-            Reply::from_str(
-                &msg,
-                format!(
-                    "Command \"{}\" not recognized",
-                    MessageHandler::extract_command_name(msg.content.as_str())
-                )
-                .as_str(),
-            )
-            .send(&ctx)
-            .await;
+            // if 2nd character is the same as command prefix, ignore
+            if !(msg.content.len() >= 2
+                && msg.content[1..].starts_with(self.settings.command_prefix.as_str()))
+            {
+                if !BuiltInCommands::dispatch(&self.connection, &ctx, &msg).await
+                    && !self.handle_dynamic_commands(&ctx, &msg).await
+                {
+                    Reply::from_str(
+                        &msg,
+                        format!(
+                            "Command \"{}\" not recognized",
+                            MessageHandler::extract_command_name(msg.content.as_str())
+                        )
+                        .as_str(),
+                    )
+                    .send(&ctx)
+                    .await;
+                }
+            }
         }
     }
 

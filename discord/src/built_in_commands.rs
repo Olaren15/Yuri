@@ -17,7 +17,8 @@ impl BuiltInCommands {
     pub async fn dispatch(conn: &DbContext, ctx: &Context, msg: &Message) -> bool {
         match MessageHandler::extract_command_name(msg.content.as_str()) {
             "help" => Self::help(conn, ctx, msg).await,
-            "register" => Self::register(conn, ctx, msg).await,
+            // "register" => Self::register(conn, ctx, msg).await,
+            "uwu" => Self::uwu(ctx, msg).await,
             "offer" => Self::offer(conn, ctx, msg).await,
             _ => {
                 return false;
@@ -55,11 +56,12 @@ Strikethrough commands are unavailable because they require to be in an nsfw cha
                                 "Offer a command to someone before touching them",
                                 false,
                             );
-                            e.field(
-                                "`register`",
-                                "Register this server for use with the web interface",
-                                false,
-                            );
+                            e.field("`uwu`", "UwU", false);
+                            //e.field(
+                            //    "`register`",
+                            //    "Register this server for use with the web interface",
+                            //    false,
+                            //);
 
                             e.fields(commands.into_iter().map(|command| {
                                 if command.is_nsfw && !channel_is_nsfw {
@@ -88,6 +90,7 @@ Strikethrough commands are unavailable because they require to be in an nsfw cha
         }
     }
 
+    #[allow(dead_code)]
     async fn register(conn: &DbContext, ctx: &Context, msg: &Message) {
         let message;
         if let Some(guild_id) = msg.guild_id {
@@ -283,5 +286,20 @@ Strikethrough commands are unavailable because they require to be in an nsfw cha
         }
 
         false
+    }
+
+    async fn uwu(ctx: &Context, msg: &Message) {
+        if let Some(message_start) = msg.content.find(' ') {
+            Reply::from_str(
+                &msg,
+                uwuifier::uwuify_str_sse(&msg.content[message_start..]).as_str(),
+            )
+            .send(ctx)
+            .await;
+        } else {
+            Reply::from_str(&msg, "Nothing to uwuify. Type some text to uwuify UwU")
+                .send(&ctx)
+                .await;
+        }
     }
 }

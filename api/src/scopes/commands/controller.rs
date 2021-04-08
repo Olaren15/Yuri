@@ -1,4 +1,3 @@
-use actix_web::web::Path;
 use actix_web::{
     get, web,
     web::{Data, Json, ServiceConfig},
@@ -12,9 +11,9 @@ pub fn register(cfg: &mut ServiceConfig) {
 }
 
 #[get("/for_guild/{guild_id}")]
-async fn all(connection: Data<DbContext>, guild_id: Path<u64>) -> impl Responder {
+async fn all(connection: Data<DbContext>) -> impl Responder {
     let commands = CommandRepository::new(&connection)
-        .get_all_commands_in_guild(*guild_id)
+        .get_all_commands()
         .await
         .unwrap_or_default();
 

@@ -30,22 +30,17 @@ impl MessageHandler {
     }
 
     async fn handle_dynamic_commands(&self, ctx: &Context, msg: &Message) -> bool {
-        if let Some(guild_id) = msg.guild_id {
-            if let Ok(command) = CommandRepository::new(&self.connection)
-                .get_command_from_name_and_guild(
-                    MessageHandler::extract_command_name(msg.content.as_str()),
-                    guild_id.into(),
-                )
-                .await
-            {
-                if !Self::check_nsfw_and_bonk(&command, ctx, msg, &self.connection).await {
-                    for reply in Reply::from_command(&command, &msg, &self.connection).await {
-                        reply.send(&ctx).await;
-                    }
+        if let Ok(command) = CommandRepository::new(&self.connection)
+            .get_command_from_name(MessageHandler::extract_command_name(msg.content.as_str()))
+            .await
+        {
+            if !Self::check_nsfw_and_bonk(&command, ctx, msg, &self.connection).await {
+                for reply in Reply::from_command(&command, &msg, &self.connection).await {
+                    reply.send(&ctx).await;
                 }
-
-                return true;
             }
+
+            return true;
         }
 
         false

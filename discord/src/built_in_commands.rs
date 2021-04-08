@@ -292,7 +292,9 @@ Strikethrough commands are unavailable because they require to be in an nsfw cha
         if let Some(message_start) = msg.content.find(' ') {
             Reply::from_str(
                 &msg,
-                uwuifier::uwuify_str_sse(&msg.content[message_start..]).as_str(),
+                uwuifier::uwuify_str_sse(&msg.content[message_start..])
+                    .replace('~', "\\~")
+                    .as_str(),
             )
             .send(ctx)
             .await;

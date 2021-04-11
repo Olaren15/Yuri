@@ -16,8 +16,6 @@ impl CommandRepository {
             "
                 SELECT *
                 FROM commands
-                    INNER JOIN command_guild
-                    ON command_guild.command_id = commands.id
                 WHERE commands.name = ?
                 LIMIT 1
                 ",

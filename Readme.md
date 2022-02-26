@@ -1,1 +1,8 @@
-Url to add my 'reference' bot: https://discord.com/oauth2/authorize?client_id=791318841384108072&scope=bot
+# Running the bot
+- [Install rust](https://www.rust-lang.org/tools/install)
+- Create a mysql or mariadb database
+- Create the database schema
+  - For a blank db use the file `common/db.sql`
+  - For the same state as before the bot was taken down, use `dump.sql` and replace the placeholder values in the settings table
+- Set the `yuri_db` environment variable following this pattern: `mysal://user:password@host/database`
+- Execute `cargo run`

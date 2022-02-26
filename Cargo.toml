@@ -1,6 +1,2 @@
 [workspace]
-members = ["discord", "api", "common"]
-
-# use my patched version that allow me to change the client's token on the fly
-[patch.crates-io]
-serenity = { git = "https://github.com/Olaren15/serenity", branch = "current" }
+members = ["discord", "common"]
